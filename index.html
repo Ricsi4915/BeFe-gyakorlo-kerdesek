@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Frontend Vizsgagyakorló</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one centered study column; home = mode + scope picker, play views = one question card at a time */
+:root{
+  --bg:#f3f4fa; --surface:#ffffff; --surface-2:#eceef7; --fg:#1a1c2b; --muted:#5b6078; --line:#dcdfec;
+  --accent:#5a48e0; --accent-fg:#ffffff;
+  --c0:#5a48e0; --c1:#c98a00; --c2:#d4113a; --c3:#2563d4; --c4:#7d3bf0;
+  --k1:#e21b3c; --k2:#1368ce; --k3:#c98a00; --k4:#26890c;
+  --ok:#1d8a4a; --part:#c27400; --bad:#d23434;
+  --ok-soft:#e3f5ea; --part-soft:#fdf1dc; --bad-soft:#fbe5e5;
+  --code-bg:#1d1f2e; --code-fg:#e8e9f3;
+  --shadow:0 1px 2px rgba(26,28,43,.06),0 6px 20px rgba(26,28,43,.06);
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Figtree","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11121b; --surface:#1b1d2b; --surface-2:#252839; --fg:#eceef8; --muted:#a0a5bf; --line:#30344a;
+  --accent:#8f83ff; --accent-fg:#14121f;
+  --c0:#8f83ff; --c1:#f0b429; --c2:#ff5577; --c3:#5c9bff; --c4:#b18bff;
+  --ok:#3cc47a; --part:#f0a935; --bad:#ff6b6b;
+  --ok-soft:#173326; --part-soft:#3a2c12; --bad-soft:#3a1a1d;
+  --code-bg:#0c0d14; --code-fg:#e8e9f3; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11121b; --surface:#1b1d2b; --surface-2:#252839; --fg:#eceef8; --muted:#a0a5bf; --line:#30344a;
+  --accent:#8f83ff; --accent-fg:#14121f;
+  --c0:#8f83ff; --c1:#f0b429; --c2:#ff5577; --c3:#5c9bff; --c4:#b18bff;
+  --ok:#3cc47a; --part:#f0a935; --bad:#ff6b6b;
+  --ok-soft:#173326; --part-soft:#3a2c12; --bad-soft:#3a1a1d;
+  --code-bg:#0c0d14; --code-fg:#e8e9f3; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55}
+.wrap{max-width:780px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 48px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:8px 20px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:800;font-size:1.1rem;letter-spacing:-.01em;background:none;border:0;color:var(--fg);cursor:pointer;padding:0}
+.brand .logo{display:grid;grid-template-columns:1fr 1fr;gap:3px;width:26px;height:26px}
+.brand .logo i{border-radius:3px}
+.brand .logo i:nth-child(1){background:var(--k1)}.brand .logo i:nth-child(2){background:var(--k2)}.brand .logo i:nth-child(3){background:var(--k3)}.brand .logo i:nth-child(4){background:var(--k4)}
+button{font:inherit;color:inherit}
+.icon-btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:.9rem}
+.icon-btn:hover{border-color:var(--muted)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.015em}
+h1{font-size:clamp(1.9rem,5vw,2.6rem);font-weight:800;line-height:1.1}
+.lede{color:var(--muted);margin:8px 0 0}
+.label{font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+section.block{display:grid;gap:10px;margin-top:28px}
+
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mode{text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:18px;cursor:pointer;display:grid;gap:6px;box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
+.mode:hover{transform:translateY(-1px)}
+.mode[aria-pressed="true"]{border-color:var(--accent)}
+.mode h3{font-size:1.25rem;display:flex;align-items:center;gap:10px}
+.mode p{margin:0;color:var(--muted);font-size:.92rem}
+.mode .glyph{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#fff;font-size:15px;flex:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{--c:var(--c0);border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;font-weight:600;text-align:left}
+.chip .dot{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+.chip .n{font-size:.8rem;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 10%,var(--surface))}
+.opts{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
+.switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;font-weight:600;user-select:none}
+.switch input{appearance:none;width:42px;height:24px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;margin:0;transition:background .15s}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.switch input:checked{background:var(--accent)}
+.switch input:checked::after{transform:translateX(18px)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:none;padding:8px 12px;cursor:pointer;font-weight:600;font-size:.88rem;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.start{margin-top:28px;width:100%;border:0;border-radius:14px;padding:16px 20px;background:var(--accent);color:var(--accent-fg);font-family:var(--f-display);font-weight:800;font-size:1.15rem;cursor:pointer;box-shadow:var(--shadow)}
+.start:hover{filter:brightness(1.06)}
+.note{font-size:.88rem;color:var(--muted);margin:0}
+.resume{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:14px 16px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;box-shadow:var(--shadow)}
+.resume .txt{min-width:0}
+.resume b{display:block}
+.resume .acts{display:flex;gap:8px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 14px;cursor:pointer;font-weight:600}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.danger{color:var(--bad)}
+
+/* play views */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.stat{font-variant-numeric:tabular-nums;font-weight:700;font-size:.95rem;display:flex;gap:14px;align-items:center}
+.stat span{color:var(--muted);font-weight:600}
+.progress{height:8px;border-radius:999px;background:var(--surface-2);overflow:hidden;margin:14px 0 18px}
+.progress i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .3s}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow);display:grid;gap:14px;min-width:0}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{--c:var(--c0);font-size:.75rem;font-weight:700;letter-spacing:.04em;padding:4px 10px;border-radius:999px;background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--c);text-transform:uppercase}
+.tag.code{--c:var(--c4);background:transparent;border:1.5px dashed var(--c)}
+.q{font-size:clamp(1.2rem,3.2vw,1.5rem);font-weight:700;line-height:1.3}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--surface-2);padding:.1em .35em;border-radius:5px}
+pre{margin:0;background:var(--code-bg);color:var(--code-fg);border-radius:12px;padding:14px 16px;overflow-x:auto;font-family:var(--f-mono);font-size:.88rem;line-height:1.5}
+pre code{background:none;padding:0;font-size:inherit}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.ans{--k:var(--k1);border:0;border-radius:14px;background:var(--k);color:#fff;padding:16px;min-height:76px;text-align:left;display:flex;align-items:center;gap:12px;cursor:pointer;font-weight:600;font-size:1rem;line-height:1.35;box-shadow:0 4px 0 color-mix(in srgb,var(--k) 70%,#000);transition:transform .1s,opacity .2s,filter .2s}
+.ans:hover:not(:disabled){transform:translateY(-2px)}
+.ans:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px 0 color-mix(in srgb,var(--k) 70%,#000)}
+.ans .sh{flex:none;width:28px;height:28px;display:grid;place-items:center}
+.ans .sh svg{width:22px;height:22px;fill:#fff}
+.ans .t{min-width:0;overflow-wrap:anywhere}
+.ans .t code{background:rgba(0,0,0,.22);color:#fff}
+.ans:disabled{cursor:default}
+.ans.dim{opacity:.35;filter:saturate(.4)}
+.ans.right{outline:4px solid var(--ok);outline-offset:3px}
+.ans .mark{margin-left:auto;font-size:1.3rem;flex:none}
+.feedback{margin-top:16px;border-radius:14px;padding:16px 18px;display:grid;gap:10px;border:1.5px solid}
+.feedback.ok{background:var(--ok-soft);border-color:var(--ok)}
+.feedback.bad{background:var(--bad-soft);border-color:var(--bad)}
+.feedback .v{font-family:var(--f-display);font-weight:800;font-size:1.15rem}
+.feedback.ok .v{color:var(--ok)} .feedback.bad .v{color:var(--bad)}
+.feedback p{margin:0}
+.row-end{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.reveal{width:100%;border:2px dashed var(--line);background:var(--surface-2);border-radius:14px;padding:16px;cursor:pointer;font-weight:700;color:var(--muted)}
+.reveal:hover{border-color:var(--accent);color:var(--fg)}
+.model{border-top:1px solid var(--line);padding-top:14px;display:grid;gap:10px}
+.model ul{margin:0;padding-left:1.2em;display:grid;gap:6px}
+.rate{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.rbtn{--r:var(--bad);border:2px solid var(--r);background:var(--surface);color:var(--r);border-radius:14px;padding:14px 10px;cursor:pointer;font-weight:800;font-family:var(--f-display);font-size:1.05rem;display:grid;gap:2px;justify-items:center}
+.rbtn small{font-family:var(--f-body);font-weight:600;font-size:.75rem;color:var(--muted)}
+.rbtn:hover{background:color-mix(in srgb,var(--r) 12%,var(--surface))}
+.kbd{font-family:var(--f-mono);font-size:.72rem;border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:var(--muted)}
+.hint{font-size:.82rem;color:var(--muted);margin:12px 0 0;text-align:center}
+.result h2{font-size:clamp(1.6rem,5vw,2.2rem)}
+.big{font-family:var(--f-display);font-weight:800;font-size:clamp(3rem,12vw,4.5rem);line-height:1;font-variant-numeric:tabular-nums}
+.sumrow{display:flex;flex-wrap:wrap;gap:10px}
+.pill{border-radius:999px;padding:6px 12px;font-weight:700;font-size:.88rem;font-variant-numeric:tabular-nums}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.part{background:var(--part-soft);color:var(--part)}
+.miss{display:grid;gap:10px}
+.miss .item{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:4px;background:var(--surface);min-width:0}
+.miss .item .a{color:var(--ok);font-weight:600}
+.confirm{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap}
+@media (max-width:560px){
+  .modes{grid-template-columns:1fr}
+  .answers{grid-template-columns:1fr}
+  .ans{min-height:60px}
+  .card{padding:18px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+html{color-scheme:light}body{margin:0}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <button class="brand" id="homeBtn" type="button" aria-label="Főoldal"><span class="logo"><i></i><i></i><i></i><i></i></span>FE Gyakorló</button>
+    <button class="icon-btn" id="themeBtn" type="button"></button>
+  </header>
+
+  <!-- HOME -->
+  <main id="home">
+    <h1>Frontend vizsgagyakorló</h1>
+    <p class="lede">Borkó Richárd frontend jegyzete alapján: 4 fejezet, feleletválasztós kvíz és kifejtős kártyák.</p>
+
+    <div id="resumes" class="block" style="display:grid;gap:10px;margin-top:20px"></div>
+
+    <section class="block">
+      <div class="label">Mód</div>
+      <div class="modes">
+        <button class="mode" type="button" id="m-quiz" aria-pressed="true">
+          <h3><span class="glyph" style="background:var(--k2)">▲</span>Kvíz</h3>
+          <p>Négy válaszlehetőség, azonnali visszajelzés és magyarázat.</p>
+        </button>
+        <button class="mode" type="button" id="m-cards" aria-pressed="false">
+          <h3><span class="glyph" style="background:var(--k4)">✎</span>Kifejtős</h3>
+          <p>Fejben válaszolsz, lenyitod a mintát, és értékeled magad.</p>
+        </button>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="label">Anyag</div>
+      <div class="chips" id="chapterChips"></div>
+    </section>
+
+    <section class="block">
+      <div class="label">Beállítások</div>
+      <div class="opts">
+        <label class="switch"><input type="checkbox" id="randomToggle" checked> Random sorrend</label>
+        <div class="seg" id="kindSeg" role="group" aria-label="Kérdéstípus">
+          <button type="button" data-kind="all" aria-pressed="true">Mind</button>
+          <button type="button" data-kind="theory" aria-pressed="false">Csak elméleti</button>
+          <button type="button" data-kind="code" aria-pressed="false">Csak kód</button>
+        </div>
+      </div>
+      <p class="note" id="modeNote"></p>
+    </section>
+
+    <button class="start" id="startBtn" type="button"></button>
+
+    <div class="foot">
+      <p class="note">A haladásod ebben a böngészőben mentődik.</p>
+      <div id="resetArea"></div>
+    </div>
+  </main>
+
+  <!-- QUIZ -->
+  <main id="quiz" hidden>
+    <div class="bar">
+      <button class="btn" id="qExit" type="button">← Kilépés</button>
+      <div class="stat"><div><span>Kérdés</span> <b id="qPos"></b></div><div><span>Pont</span> <b id="qScore"></b></div></div>
+    </div>
+    <div class="progress"><i id="qBar"></i></div>
+    <article class="card">
+      <div class="tags" id="qTags"></div>
+      <div class="q" id="qText"></div>
+      <pre id="qCode" hidden><code></code></pre>
+    </article>
+    <div class="answers" id="qAnswers"></div>
+    <div id="qFeedback" hidden></div>
+    <p class="hint">Billentyűk: <span class="kbd">1</span>–<span class="kbd">4</span> válasz, <span class="kbd">Enter</span> következő</p>
+  </main>
+
+  <!-- CARDS -->
+  <main id="cards" hidden>
+    <div class="bar">
+      <button class="btn" id="cExit" type="button">← Kilépés</button>
+      <div class="stat"><div><span>Kész</span> <b id="cDone"></b></div><div><span>Sorban</span> <b id="cLeft"></b></div></div>
+    </div>
+    <div class="progress"><i id="cBar"></i></div>
+    <article class="card">
+      <div class="tags" id="cTags"></div>
+      <div class="q" id="cText"></div>
+      <button class="reveal" id="cReveal" type="button">Válasz megmutatása <span class="kbd">Szóköz</span></button>
+      <div class="model" id="cModel" hidden></div>
+    </article>
+    <div class="rate" id="cRate" hidden>
+      <button class="rbtn" type="button" data-r="bad" style="--r:var(--bad)">Hibás<small>2 kártya múlva újra</small></button>
+      <button class="rbtn" type="button" data-r="part" style="--r:var(--part)">Részben<small>5 kártya múlva újra</small></button>
+      <button class="rbtn" type="button" data-r="ok" style="--r:var(--ok)">Helyes<small>kikerül</small></button>
+    </div>
+    <p class="hint">A kártya addig jön vissza, amíg egyszer „Helyes” nem lesz. Billentyűk: <span class="kbd">1</span> hibás, <span class="kbd">2</span> részben, <span class="kbd">3</span> helyes</p>
+  </main>
+
+  <!-- RESULT -->
+  <main id="result" hidden></main>
+</div>
+
+<script>
+const CH = {
+  1:{name:"JS működése & TypeScript", short:"1 · JS & TS"},
+  2:{name:"Angular alapok", short:"2 · Angular alapok"},
+  3:{name:"Szolgáltatások & API", short:"3 · Szolgáltatások"},
+  4:{name:"Haladó Angular eszközök", short:"4 · Haladó eszközök"}
+};
+
+/* a[0] is always the correct answer; options are shuffled at runtime. k:1 = gyakorlati/kód kérdés */
+const QUIZ = [
+/* ===== 1. JS működése, TS ===== */
+{c:1,q:"Mi a hoisting JavaScriptben?",a:["A JS a futtatás előtt előkészíti a deklarációkat a saját hatókörükben, de értéket ekkor még nem kapnak","A JS a futtatás előtt minden változónak értéket ad a fájl elején","A build során a nem használt változók törlése","A lokális változók automatikus átalakítása globálissá"],e:"A deklarációk a hatókörük elejére „kerülnek”, de az értékadás az eredeti helyén történik."},
+{c:1,q:"Mit kapunk, ha egy `var`-ral deklarált változót a deklarációja előtt olvasunk ki?",a:["`undefined`-ot","`ReferenceError`-t","`null`-t","`SyntaxError`-t"],e:"A var is hoistolódik, és a deklarációig undefined értékkel látszik."},
+{c:1,q:"Mit kapunk, ha egy `let`/`const` változót a deklarációja előtt próbálunk elérni?",a:["`ReferenceError`-t, mert a változó a TDZ-ben van","`undefined`-ot","`null`-t","A változó kezdőértékét"],e:"A let/const is hoistolódik, de a deklarációig a Temporal Dead Zone-ban van, ezért hibát kapunk."},
+{c:1,q:"Mit jelent a TDZ rövidítés?",a:["Temporal Dead Zone","Type Declaration Zone","Total Dynamic Zone","Temporary Data Zone"],e:"Temporal Dead Zone: let/const esetén alakul ki a deklaráció előtti szakaszban."},
+{c:1,q:"Milyen scope-ban érhető el egy `var`-ral deklarált változó?",a:["Function vagy global scope","Block scope","Csak a deklaráló sorban","Csak modul scope"],e:"A var függvény- vagy globális hatókörű, a { } blokkot nem veszi figyelembe."},
+{c:1,q:"Milyen scope-ban érhetők el a `let` és `const` változók?",a:["Block scope","Function scope","Mindig global scope","Prototype scope"],e:"Csak abban a { } blokkban élnek, ahol deklarálták őket."},
+{c:1,q:"Hogyan kommunikál a frontend a backenddel?",a:["A FE HTTP kérést küld, a BE API-n keresztül, jellemzően JSON-ban válaszol","A BE kérés nélkül küld HTML-t, a FE sosem kérdez","A FE közvetlenül az adatbázisból olvas","A BE a böngészőben futtat JavaScriptet"],e:"Frontend (HTML/CSS/JS) → HTTP request → Backend (Node/Java/.NET) → API, JSON response."},
+{c:1,q:"Mit jelent, hogy a JavaScript high-level nyelv?",a:["Absztrakciót ad, és elrejti az alacsony szintű részeket, pl. a memóriakezelést","Csak nagy teljesítményű szervereken fut","Közvetlenül gépi kódot írunk benne","Kizárólag objektumorientált"],e:"Magas szintű nyelv: nem kell kézzel memóriát foglalni és felszabadítani."},
+{c:1,q:"Mit jelent, hogy a JavaScript garbage collected?",a:["A nem használt memóriát automatikusan felszabadítja a garbage collector","A fejlesztőnek kell kézzel felszabadítania a memóriát","A nem használt függvényeket build közben törli","A hibás kódot automatikusan kijavítja"],e:"A GC automatikusan felszabadítja a már nem elérhető objektumok memóriáját."},
+{c:1,q:"Hogyan működik az öröklődés a prototype-based OOP-ben?",a:["Egy objektum egy másik objektumon (a prototípusán) keresztül is elérhet tulajdonságokat és metódusokat","Csak osztályok örökölhetnek, objektumok nem","Minden objektum másolatot kap az ős összes metódusáról","Öröklődés csak TypeScriptben létezik"],e:"A tulajdonság vagy metódus keresése a prototípuson keresztül folytatódik, így működik az öröklődés."},
+{c:1,q:"Mit jelent, hogy a JavaScript multi-paradigm?",a:["Több szemléletet támogat, pl. procedurális, OOP, funkcionális","Több szálon fut egyszerre","Több böngészőben is fut","Több nyelven írható benne kód"],e:"Paradigma = szemlélet, megközelítés. A JS többet is támogat."},
+{c:1,q:"Mit jelent, hogy a JavaScript dinamikusan típusos?",a:["A változó típusa futás közben változhat, nem kell előre rögzíteni","A típust kötelező előre megadni","Csak számokkal és szövegekkel dolgozik","A típusellenőrzés fordításkor történik"],e:"Egy változóban előbb szám, később szöveg is lehet."},
+{c:1,q:"A JS single threaded. Mi teszi mégis lehetővé az „aszinkron” működést?",a:["A runtime (pl. Web API-k) és az event loop","A motor titokban több szálon futtatja a kódot","A TypeScript fordító","A garbage collector"],e:"A hosszabb műveleteket a runtime kezeli, az event loop pedig visszahozza a callbacket. Single threaded ≠ szinkron."},
+{c:1,q:"Mit jelent a first-class functions jellemző?",a:["A függvények értékként kezelhetők: változóba tehetők, paraméterként átadhatók és visszaadhatók","A függvények mindig elsőként futnak le","Függvényt csak osztályon belül lehet írni","A függvényeket nem lehet egymásba ágyazni"],e:"A függvény ugyanolyan érték, mint egy szám vagy egy objektum."},
+{c:1,q:"Melyik állítás igaz az interpretált (értelmezett) nyelvekre?",a:["A kódot futás közben egy interpreter értelmezi és hajtja végre (pl. Python)","A kódot futtatás előtt teljesen gépi kódra fordítják","Linkerrel executable-t készítenek belőlük","Csak böngészőben futtathatók"],e:"Forráskód → Interpreter → Végrehajtás."},
+{c:1,q:"Melyik a fordított (compiled) nyelvek folyamata?",a:["Forráskód → Compiler → gépi kód → Linker → Executable → CPU","Forráskód → Interpreter → Végrehajtás","Forráskód → AST → Event loop → CPU","Forráskód → Bytecode → Interpreter → Linker"],e:"Fordított nyelveknél (C, C++, Rust) a kódot előre gépi kódra fordítják, a linker készít belőle futtatható állományt."},
+{c:1,q:"Mi jellemzi a JIT (Just-In-Time) végrehajtást?",a:["Köztes reprezentációban fut, a gyakran használt részeket futás közben gépi kódra fordítja és optimalizálja","A teljes programot futtatás előtt gépi kódra fordítja","Csak sorról sorra értelmez, sosem fordít","Kizárólag a build során fut"],e:"A JIT ötvözi az interpretált és a fordított módszert."},
+{c:1,q:"Mi jellemzi a deklaratív programozást?",a:["Azt írjuk le, MIT szeretnénk eredményként, nem a pontos lépéseit (pl. SQL)","Utasítások sorozata, a HOGYAN a hangsúlyos","Csak deklarációkat tartalmaz, utasítást soha","Csak alacsony szintű nyelvekben létezik"],e:"Deklaratív = MIT szeretnénk látni. Példa: SQL."},
+{c:1,q:"Mi jellemzi az imperatív programozást?",a:["Utasítások sorozata, amelyek a program állapotát változtatják; a HOGYAN a hangsúlyos (pl. C, C++)","Csak a kívánt eredményt írjuk le","Nincs benne állapotváltozás","Csak lekérdezőnyelvekben használjuk"],e:"Imperatív = lépésről lépésre leírjuk, hogyan jusson el a program az eredményig."},
+{c:1,q:"Ki biztosítja a `setTimeout` és a `fetch` funkciót a böngészőben futó JS-nek?",a:["A böngésző, a Web API-kon keresztül","A JS engine önmagában","A TypeScript fordító","Az npm"],e:"A JS önmagában nem tudná ezeket; a böngésző adja a Web API-kat (Fetch, Timer, DOM)."},
+{c:1,q:"Milyen elven működik a Call Stack?",a:["LIFO (Last In, First Out)","FIFO (First In, First Out)","Véletlenszerű sorrendben","Prioritás szerint"],e:"Verem: ami utoljára került be, az fut le először. Itt fut az aktuálisan végrehajtott JS kód."},
+{c:1,q:"Mit tárol a Heap?",a:["Objektumokat és dinamikusan kezelt adatokat","Az éppen futó stack frame-eket","A várakozó callbackeket","A böngésző Web API-jait"],e:"A nem elérhető objektumok memóriáját a garbage collector szabadítja fel."},
+{c:1,q:"Hová kerülnek a Promise-ok callbackjei?",a:["A Microtask Queue-ba","A Callback/Task Queue-ba","Közvetlenül a Heap-be","A Web API-kba"],e:"A promise callbackek nem a Callback Queue-ba, hanem a MicroTask Queue-ba kerülnek."},
+{c:1,q:"Milyen elven működik a Callback/Task Queue?",a:["FIFO","LIFO","Véletlenszerűen","Mindig a legrövidebb callback fut először"],e:"Sor: amelyik callback először érkezett, az kerül először végrehajtásra."},
+{c:1,q:"Mikor helyez át az event loop egy elemet a Callback Queue-ból a Call Stackre?",a:["Ha a Callback Queue-ban van elem ÉS a Call Stack üres","Azonnal, amint elem érkezik a queue-ba","Másodpercenként egyszer","Ha a Heap megtelt"],e:"Az event loop mindkettőt figyeli, és csak üres Call Stack esetén helyez át."},
+{c:1,q:"Mi történik egy százmilliós `for` ciklussal?",a:["Nem kerül át a runtime-hoz, így blokkolja a végrehajtást","Automatikusan a Web API-hoz kerül és a háttérben fut","Az event loop feldarabolja","A garbage collector leállítja"],e:"Csak a runtime által kezelt aszinkron műveletek kerülnek ki; egy hosszú szinkron ciklus blokkol."},
+{c:1,q:"Melyik JS engine – környezet párosítás helyes?",a:["V8 – Chromium és Node.js","SpiderMonkey – Safari","JavaScriptCore – Firefox","V8 – csak Firefox"],e:"V8: Chromium, Node.js · SpiderMonkey: Firefox · JavaScriptCore: Safari."},
+{c:1,q:"Mi a JS engine működésének sorrendje?",a:["Parsing → AST → Compile → Bytecode → Execution → Optimization","Compile → Parsing → Execution → AST","Execution → Parsing → Bytecode → AST","Optimization → Parsing → Compile → Execution"],e:"Feldolgozza és fává alakítja a kódot, köztes kódra fordítja, futtatja, majd a sokat futó részeket optimalizálja (JIT)."},
+{c:1,q:"Mi az AST?",a:["Abstract Syntax Tree: a kód strukturált, fa alakú reprezentációja","Asynchronous Script Task: egy aszinkron feladat","A bytecode másik neve","A Call Stack egy eleme"],e:"A parsing lépés eredménye."},
+{c:1,q:"Mi kapcsolódhat egy stack frame-hez (execution context)?",a:["Paraméterek, lokális változók, visszatérési információk","Csak a globális változók","A böngésző DOM fája","A várakozó callbackek"],e:"A Call Stack elemei a stack frame-ek / execution contextek."},
+{c:1,q:"Mit jelent, hogy a TypeScript a JavaScript supersete?",a:["Bővített halmaz: kibővíti a JavaScriptet","A JS egy újabb, gyorsabb runtime-ja","A JS egy leszűkített változata","JS-től független nyelv saját motorral"],e:"Superset = bővített halmaz. A TS a JS-re épül, és főleg típusokkal egészíti ki."},
+{c:1,q:"Hogyan fut a TypeScript kód?",a:["TS-ből JS kód készül, és az a már ismertetett módon fut","Saját TypeScript runtime-ban","A böngésző közvetlenül futtatja a .ts fájlokat","Csak Node.js-ben futtatható"],e:"A TypeScript nem külön/alternatív runtime."},
+{c:1,q:"Miért használják inkább nagyvállalatoknál a TypeScriptet?",a:["Típusellenőrzést ad, míg JS-ben típust csak kommentben lehet megadni","Gyorsabban fut a böngészőben, mint a JS","Nincs szükség hozzá buildre","Nem kell hozzá npm"],e:"JS-ben a kommentes típus csak a fejlesztést és az IntelliSense-t segíti; a TS ellenőrzi is a típusokat."},
+{c:1,q:"Mi történik build során?",a:["Létrejön a célkörnyezetben futtatható kimenet: TS→JS fordítás, bundling, minifikáció, optimalizáció","A kód feltöltődik a szerverre","Lefutnak a felhasználói tesztek a böngészőben","Az npm frissíti a csomagokat"],e:"A build kimenete az, amit a célkörnyezetben futtatni tudunk."},
+{c:1,q:"Mi az ECMAScript (ES)?",a:["A JavaScript nyelv szabályainak hivatalos neve, specifikációja","Egy JS keretrendszer","Egy JS engine","A TypeScript régi neve"],e:"Specifikálja a nyelv működését és elemeit. Verziók: ES5, ES2016, ES2018…"},
+{c:1,q:"Hol állítható be, hogy a TypeScript milyen JS verzióra fordítson?",a:["A tsconfig.json compilerOptions részében","A package.json scripts részében","Az angular.json fileReplacements részében","Az index.html-ben"],e:""},
+{c:1,q:"Mi az npm?",a:["Node Package Manager: csomagkezelő és registry JS/Node.js-hez","Egy JS engine","A TypeScript fordítója","Az Angular routere"],e:"Csomagok telepítése, függőségek és verziók kezelése, scriptek futtatása. Pl. `npm install lodash`."},
+/* ch1 code */
+{c:1,k:1,q:"Mit ír ki a konzolra?",code:"console.log(x);\nvar x = 10;",a:["undefined","10","ReferenceError","null"],e:"A var hoistolódik, de az értékadás csak a második sorban történik meg."},
+{c:1,k:1,q:"Mit ír ki a konzolra?",code:"console.log(y);\nlet y = 10;",a:["ReferenceError","undefined","10","null"],e:"A let deklaráció előtt a változó a TDZ-ben van."},
+{c:1,k:1,q:"Mi történik a két `console.log` sorban?",code:"if (true) {\n  var a = 1;\n  let b = 2;\n}\nconsole.log(a);\nconsole.log(b);",a:["Kiírja: 1, majd ReferenceError","Kiírja: 1, majd 2","ReferenceError, majd 2","undefined, majd undefined"],e:"A var nem block scope-ú, így a blokkon kívül is látszik; a let block scope-ú."},
+{c:1,k:1,q:"Milyen sorrendben jelennek meg a betűk?",code:"console.log('A');\nsetTimeout(() => console.log('B'), 0);\nconsole.log('C');",a:["A, C, B","A, B, C","B, A, C","C, A, B"],e:"A setTimeout callbackje a Web API-n át a Callback Queue-ba kerül, és csak akkor fut, ha a Call Stack már üres."},
+{c:1,k:1,q:"Mit ír ki, és melyik JS jellemzőt mutatja be?",code:"function run(fn) {\n  return fn();\n}\nconst hello = () => 'Szia';\nconsole.log(run(hello));",a:["'Szia' – first-class functions","'Szia' – hoisting","undefined – dinamikus típusosság","Hibát dob, függvény nem adható át paraméterként"],e:"A függvényt értékként adjuk át paraméterként."},
+{c:1,k:1,q:"Mit ír ki, és melyik jellemzőt mutatja be?",code:"let v = 5;\nv = 'öt';\nconsole.log(typeof v);",a:["'string' – dinamikus típusosság","'number' – a típus nem változhat","TypeError – típusváltás nem engedélyezett","'string' – prototype-based OOP"],e:"A változó típusa futás közben megváltozhat."},
+
+/* ===== 2. Angular alapok ===== */
+{c:2,q:"Mi az AJAX?",a:["Webfejlesztési technika: a böngésző teljes újratöltés nélkül kér adatot a szervertől, és ez alapján módosítja az oldalt","Egy JavaScript framework","Egy JS library a DOM kezelésére","Egy szerveroldali template engine"],e:"Asynchronous JavaScript and XML: nem framework és nem library, hanem technika."},
+{c:2,q:"Az AJAX nevében XML szerepel. Milyen adatformátum használatos ma inkább?",a:["JSON","CSV","YAML","Bináris HTML"],e:""},
+{c:2,q:"Mi a jQuery?",a:["JavaScript library, ami leegyszerűsítette a DOM-kezelést, az eseménykezelést és az AJAX kéréseket","Frontend framework komponensekkel és routinggal","Egy JavaScript engine","A TypeScript elődje"],e:""},
+{c:2,q:"Mi vezetett a frontend frameworkök (pl. Angular) megjelenéséhez?",a:["Egyre több komplex library jelent meg, és igény lett egy rendszerre, ami strukturáltan segíti az alkalmazás felépítését","A böngészők megszüntették a JavaScript támogatását","Az AJAX betiltása","A szerverek nem tudtak többé HTML-t küldeni"],e:""},
+{c:2,q:"Mi jellemzi az MPA-t (Multi Page Application)?",a:["Az egyes nézetek között az oldal újratöltődik, új view jön létre","Egy fő HTML dokumentum köré épül","A navigációt teljesen a kliensoldali JS kezeli","Sosem kér adatot a szervertől"],e:"Hagyományos webalkalmazás-modell."},
+{c:2,q:"Mit jelent az SSR?",a:["Server Side Rendering: a szerver előre elkészíti a HTML-t","Single Script Runtime","Static Style Rendering: CSS előfordítás","Secure Session Request"],e:"Régen jellemzően MPA + SSR felállás volt."},
+{c:2,q:"Mi jellemzi az SPA-t (Single Page Application)?",a:["Egy fő HTML dokumentum köré épül, a navigációt és a UI-frissítést a kliensoldali JS kezeli","Minden kattintásra a teljes oldal újratöltődik","Csak szerveroldalon renderel","Minden nézethez külön HTML fájlt kér le"],e:""},
+{c:2,q:"Melyik technika kapcsolódik szorosan az SPA-hoz?",a:["AJAX: az oldal nem töltődik újra teljesen, csak részeket kér le","SSR: minden nézet a szerveren készül","FTP: fájlok letöltése","Linkelés: minden oldal külön HTML"],e:""},
+{c:2,q:"Mi a library?",a:["Újrafelhasználható kódkönyvtár, amit a saját programunk hív és használ","Alkalmazásstruktúrát és életciklust biztosító keret","Egy böngésző beépített része","A build kimenete"],e:"Példák: jQuery, Lodash."},
+{c:2,q:"Mi a framework?",a:["Alkalmazásstruktúrát és életciklust biztosít, a saját kódunkat ebbe illesztjük be","Egy kódkönyvtár, amit mi hívunk meg, amikor kell","Egy adatbázis-kezelő","Egy CSS stílusgyűjtemény"],e:"A framework adja az alkalmazás kereteit, pl. az Angular."},
+{c:2,q:"Melyik library (és nem framework)?",a:["Lodash","Angular","Egy keretrendszer, ami routingot és DI-t ad","Egy rendszer, ami az alkalmazás életciklusát vezérli"],e:"jQuery és Lodash library, az Angular framework."},
+{c:2,q:"Melyiket NEM biztosítja az Angular framework?",a:["Beépített SQL adatbázis-kezelést","Komponens architektúrát","Dependency injectiont","Routingot és formokat"],e:"Az Angular ad: component architecture, template system, DI, routing, forms, change detection, tesztelési támogatás."},
+{c:2,q:"Mi a Virtual DOM?",a:["JS-ben reprezentált, memóriában lévő absztrakció a tényleges DOM-ról","A böngésző valódi DOM fájának másolata a szerveren","Egy CSS animációs technika","Az Angular routerének része"],e:"Virtuális DOM fa a memóriában."},
+{c:2,q:"Mi a Virtual DOM célja?",a:["Változáskor ne kelljen a teljes DOM-ot módosítani; csak a végső érvényes változást kell a valódi DOM-ban elvégezni","A JavaScript gyorsabb letöltése","A CSS fájlok összevonása","A szerveroldali renderelés kiváltása"],e:"A teljes újrarendereléshez képest gyorsabb, főleg sok változtatásnál."},
+{c:2,q:"Mit használ az Angular a Virtual DOM helyett?",a:["Saját renderelési és Change Detection mechanizmust","jQuery-t","Szerveroldali template engine-t","Semmit, mindig a teljes DOM-ot újrarajzolja"],e:""},
+{c:2,q:"Mit állapít meg az Angular Change Detection?",a:["Hogy az alkalmazás változása miatt szükséges-e a megjelenített UI frissítése","Hogy melyik npm csomag frissíthető","Hogy a felhasználó be van-e jelentkezve","Hogy a kód szintaktikailag helyes-e"],e:""},
+{c:2,q:"Mi az adatkötés (data binding)?",a:["Kapcsolat a komponensben lévő adatok és a template között","Két backend szerver összekötése","Adatbázis táblák összekapcsolása","A CSS és a HTML összekapcsolása"],e:""},
+{c:2,q:"Mi a kétirányú adatkötés szintaxisa Angularban?",a:["`[(ngModel)]`","`{{ ngModel }}`","`(ngModel)`","`*ngModel`"],e:"Pl. `<input [(ngModel)]=\"newTodo\">`"},
+{c:2,q:"Hogyan működik a Two-Way binding?",a:["Ha a felhasználó módosítja az adatot, változik a komponens értéke is; ha a komponens értéke változik, frissül a felület is","Csak a komponens → nézet irányba frissít","Csak a nézet → komponens irányba frissít","Csak oldal-újratöltéskor szinkronizál"],e:""},
+{c:2,q:"Mi a One-Way binding?",a:["Olyan adatkötés, ahol az adatkapcsolat csak egy irányba történik","Kétirányú kötés egyetlen mezőre","Kötés, ami csak egyszer fut le","Kötés két komponens között"],e:"A Two-Way binding ellentéte / másik verziója."},
+{c:2,q:"Melyik NEM kétirányú kötés Angularban?",a:["Interpoláció `{{ }}`","`[(ngModel)]`","Banana in a box szintaxis","Egy inputhoz kötött ngModel"],e:"Kivétel a kétirányú kötés alól: interpoláció, property binding, event binding."},
+{c:2,q:"Mit mutat meg a template flow?",a:["Hogyan áramlik az adat és az esemény az Angular komponens és a felhasználói felület között","A build lépéseinek sorrendjét","A CSS kaszkád sorrendjét","A szerverek közötti kommunikációt"],e:""},
+{c:2,q:"Kliensoldali (Angular) template esetén mit küld a szerver az API kérésre?",a:["JSON objektumot, amiből a frontend rendereli a listát","Kész, szerveren generált HTML listát","Egy új oldalt teljes újratöltéssel","Csak CSS-t"],e:"Az app betöltődik, majd API kérésre JSON jön, és a renderelés a frontenden történik."},
+{c:2,q:"Szerveroldali template engine (pl. Twig) esetén hol készül el a HTML?",a:["A szerveren; a böngésző a már legenerált HTML-t tölti be","A böngészőben az Angular által","A felhasználó gépén a build során","A CDN-en"],e:""},
+{c:2,q:"Melyek egy Angular komponens részei?",a:["HTML sablon, CSS stílus, TS logika, opcionálisan tesztek","Csak egy HTML fájl","Egy SQL séma és egy API végpont","Egy package.json és egy tsconfig"],e:""},
+{c:2,q:"Hogyan helyezünk el egy navigation komponenst egy másik komponens HTML-jében?",a:["`<app-navigation></app-navigation>`","`<navigation.component>`","`{{ app-navigation }}`","`<import navigation>`"],e:"A komponens a selectorával illeszthető be a sablonba."},
+{c:2,q:"Mi a Component Tree?",a:["A komponensekből álló hierarchia, amit az Angular alkalmazás alkot","A DOM fa másolata","A projekt mappaszerkezete","Az npm függőségi fa"],e:""},
+{c:2,q:"Mit határoz meg a routing?",a:["Hogy egy adott URL-hez milyen komponens vagy nézet tartozik","Hogy melyik szerver válaszoljon","Hogy milyen sorrendben töltődnek be a CSS fájlok","A backend API végpontjait"],e:"Frontend végpontok; Angularban az Angular Router biztosítja."},
+{c:2,q:"SPA esetén mi történik route váltáskor?",a:["A nézet teljes HTML újratöltés nélkül cserélődik","A teljes oldal újratöltődik","A böngésző új ablakot nyit","A szerver új HTML-t generál"],e:""},
+{c:2,q:"Mit használunk dinamikus URL-hez, pl. egy felhasználó adatlapjához?",a:["Route paramétert, pl. `/users/:id`","Query selectort","Külön komponenst minden felhasználóhoz","Környezeti változót"],e:"`/users/:id` → `/users/42`"},
+/* ch2 code */
+{c:2,k:1,q:"Mi történik, ha a felhasználó gépel ebbe a mezőbe?",code:"<input type=\"text\" [(ngModel)]=\"newTodo\" />\n<p>{{ newTodo }}</p>",a:["A newTodo változó frissül, és a bekezdés is azonnal mutatja az új értéket","Csak a bekezdés változik, a newTodo nem","Semmi, mert az interpoláció kétirányú","Az oldal újratöltődik"],e:"A [(ngModel)] kétirányú: a felület módosítása a komponens értékét is változtatja."},
+{c:2,k:1,q:"Milyen kötéstípus ez?",code:"<li *ngFor=\"let user of users\">\n  {{ user.name }}\n</li>",a:["Interpoláció (egyirányú, komponens → nézet)","Kétirányú kötés","Event binding","Content projection"],e:"A {{ }} interpoláció csak megjeleníti a komponens adatát."},
+{c:2,k:1,q:"A felhasználó a `/users/42` címre navigál. Mi történik?",code:"const routes = [\n  { path: 'users/:id', component: UserDetailComponent }\n];",a:["A UserDetailComponent jelenik meg, az id paraméter értéke '42'","Hiba, mert a :id helyére szó szerint ':id' kell","A teljes oldal újratöltődik a szerverről","A users lista 42. eleme törlődik"],e:"A :id route paraméter, ami a konkrét URL-ből kap értéket."},
+{c:2,k:1,q:"Hol fut ez a template, és mit kap a böngésző?",code:"<ul>\n  {% for user in users %}\n    <li>{{ user.name }}</li>\n  {% endfor %}\n</ul>",a:["A szerveren (pl. Twig); a böngésző kész HTML-t kap","A böngészőben (Angular); a szerver JSON-t küld","A böngészőben; a szerver üres oldalt küld","A build során egyszer, utána sosem"],e:"Ez szerveroldali template rendering: server side generated HTML (+ JS + CSS) érkezik."},
+{c:2,k:1,q:"Hány komponenst tartalmaz ez az AppComponent sablon a Component Tree-ben közvetlen gyerekként?",code:"<!-- app.component.html -->\n<app-navigation></app-navigation>\n<app-list></app-list>\n<app-footer></app-footer>",a:["3","1","0, mert ezek sima HTML elemek","4, mert az AppComponent is a saját gyereke"],e:"Az AppComponent a gyökér; a navigation, list és footer a gyerekei."},
+
+/* ===== 3. Szolgáltatások, API ===== */
+{c:3,q:"Mit csinálnak a direktívák?",a:["Módosítják a HTML elemek megjelenítését, viselkedését vagy a DOM szerkezetét","HTTP kéréseket küldenek a backendnek","A TypeScriptet JavaScriptre fordítják","Környezeti változókat tárolnak"],e:"Három típus: komponens, attribútum direktíva, strukturális direktíva."},
+{c:3,q:"Melyik a direktívák három típusa?",a:["Komponens, attribútum direktíva, strukturális direktíva","Service, pipe, guard","Input, output, model","Interface, type, class"],e:""},
+{c:3,q:"Mi jellemzi a komponenst mint direktívát?",a:["Saját sablonnal rendelkező, újrafelhasználható UI elem","Csak egy meglévő elem stílusát módosítja","Elemeket hoz létre vagy töröl a DOM-ból","Adatot formáz a sablonban"],e:"Pl. `<app-navigation>`"},
+{c:3,q:"Melyik attribútum direktíva?",a:["`[ngClass]`","`*ngIf`","`*ngFor`","`<app-navigation>`"],e:"Az attribútum direktíva (pl. [ngClass], [ngStyle]) egy meglévő elem viselkedését vagy megjelenítését módosítja."},
+{c:3,q:"Mit csinál egy strukturális direktíva?",a:["Elemeket hoz létre vagy távolít el a DOM-ból","Egy elem színét változtatja","HTTP kérést indít","Egy service-t injektál"],e:"Pl. `*ngIf`, `*ngFor`"},
+{c:3,q:"Mi egy service Angularban?",a:["TypeScript osztály, ami az alkalmazás valamely funkciójáért vagy üzleti logikájáért felel","Egy HTML sablon","Egy CSS fájl","Egy route definíció"],e:""},
+{c:3,q:"Mi következik a `providedIn: 'root'` beállításból?",a:["A service-ből egyetlen példány van, amit több komponens megosztva használ (singleton)","Minden komponens saját példányt kap","A service csak a root komponensben használható","A service a szerveren fut"],e:""},
+{c:3,q:"Mi a Dependency Injection?",a:["Tervezési megoldás, ahol egy osztály a függőségeit nem maga hozza létre, hanem kívülről kapja meg","Egy npm csomag telepítése","Egy komponens beillesztése egy másikba","Egy HTTP kérés fejlécének kitöltése"],e:""},
+{c:3,q:"Hogyan adható meg egy függőség Angularban?",a:["Constructoron keresztül vagy `inject(SomethingService)` segítségével","Csak `new SomethingService()` hívással","Csak a HTML sablonban","Az angular.json fájlban"],e:""},
+{c:3,q:"Mi a Singleton tervezési minta?",a:["Egy osztályból egyetlen, közös példány jön létre, amit az egész alkalmazás használ","Minden használatkor új példány jön létre","Egy osztály csak egyetlen metódust tartalmazhat","Egy komponens csak egy gyereket tartalmazhat"],e:""},
+{c:3,q:"A ListComponent betesz egy fejlesztőt a `service.developers` tömbbe (root service). Mit lát a CreateComponent és az EditComponent?",a:["Ugyanazt a tömböt, benne az új fejlesztővel, mert ugyanaz a példány","Üres tömböt, mert saját példányuk van","Hibát kapnak","Csak oldal-újratöltés után látják"],e:"Egy injektoron belül mindenki ugyanazt a példányt kapja."},
+{c:3,q:"Mit mond ki a SOLID „S” elve (Single Responsibility)?",a:["Egy osztálynak egyetlen felelőssége legyen","A leszármazott mindenhol helyettesíthesse az őst","Nyitott a bővítésre, zárt a módosításra","Absztrakcióktól függjünk"],e:"Angular példa: a komponens megjelenít, a service adatot kér le."},
+{c:3,q:"Mit mond ki a SOLID „O” elve (Open/Closed)?",a:["Nyitott a bővítésre, zárt a módosításra","Egy osztálynak egy felelőssége legyen","Több kicsi interface jobb egy nagynál","A függőséget kívülről kapjuk"],e:"Angular példa: új funkcióhoz új komponenst/pipe-ot írunk, a meglévőt nem írjuk át."},
+{c:3,q:"Mit mond ki a SOLID „L” elve (Liskov Substitution)?",a:["A leszármazott mindenhol helyettesíthesse az őst","Egy osztálynak egy felelőssége legyen","Zárt a módosításra","Absztrakcióktól függjünk"],e:"Ha B extends A, ahol A működik, ott B-nek is működnie kell."},
+{c:3,q:"Mit mond ki a SOLID „I” elve (Interface Segregation)?",a:["Több kicsi, célzott interface jobb egy nagynál","Egy nagy, mindent tartalmazó interface a legjobb","Interface helyett mindig class-t használjunk","Az interface futáskor is megmarad"],e:"Angular példa: külön User, Token, Skill interface."},
+{c:3,q:"Mit mond ki a SOLID „D” elve (Dependency Inversion), és mi az Angular példája?",a:["Absztrakcióktól függjünk, a függőséget kívülről kapjuk – dependency injection","Egy osztály egy felelősség – komponens vs service","A leszármazott helyettesítse az őst – extends","Kicsi interface-ek – User, Token"],e:"A komponens nem `new`-val hozza létre a service-t."},
+{c:3,q:"Mi a különbség az autentikáció és az autorizáció között?",a:["Autentikáció: hitelesítés („ki vagy?”); autorizáció: jogosultságkezelés („mit csinálhatsz?”)","Autentikáció: jogosultság; autorizáció: bejelentkezés","A kettő ugyanazt jelenti","Autentikáció a frontend, autorizáció a CSS feladata"],e:""},
+{c:3,q:"Tokenes bejelentkezésnél mi az első lépés?",a:["A FE elküldi a felhasználónevet és jelszót a backendnek (POST /login)","A BE kérés nélkül tokent küld a FE-nek","A FE maga generál tokent","A FE a jelszót a localStorage-ba menti"],e:""},
+{c:3,q:"Hol tárolhatja a frontend a kapott tokent a jegyzet szerint?",a:["Pl. localStorage-ban","A backend adatbázisában","A környezeti változók között (environment.ts)","Az URL-ben"],e:"Ezzel igazolja később, hogy ő az, és nem kell újra bejelentkeznie."},
+{c:3,q:"Hogyan küldi a FE a tokent védett kérésnél (pl. törlés)?",a:["A fejlécben: `Authorization: Bearer <token>`","A request body-ban jelszóként","Query paraméterként a route-ban","Cookie nélkül sehogy"],e:""},
+{c:3,q:"Mit ad vissza a backend, ha a token nem érvényes?",a:["401 Unauthorized","200 OK","404 Not Found","301 Moved Permanently"],e:""},
+{c:3,q:"Mit csinál a route guard (`canActivate`), és mennyire véd?",a:["Megakadályozza a bejelentkezés nélküli oldalmegnyitást, de csak frontendes kényelmi funkció; valódi védelemhez a backendnek kell ellenőriznie a tokent","Teljes biztonságot ad, a backendnek nem kell ellenőriznie","Titkosítja a tokent","Lejárat után automatikusan új tokent kér"],e:""},
+{c:3,q:"Bejelentkezéskor hol érkezik a token a backendtől?",a:["A HTTP válasz törzsében (response body)","A request headerben","Az URL-ben","Egy külön WebSocket üzenetben"],e:"A FE később a request headerben küldi vissza."},
+{c:3,q:"Melyik marad meg futáskor?",a:["`class`","`interface`","`type`","Egyik sem"],e:"Az interface és a type fordításkor eltűnik; a class megmarad, és `new`-zható."},
+{c:3,q:"Mire preferált az `interface`?",a:["API-ból érkező adat típusának (alakjának) leírására","Metódusokat és alapértékeket tartalmazó objektumok példányosítására","Uniók megadására","Futásidejű típusellenőrzésre"],e:"Az interface egy objektum alakját írja le: tulajdonságokat, metódus-szignatúrákat."},
+{c:3,q:"Mikor használunk `type`-ot?",a:["Típusálnévhez, unióhoz, egyszerű álnevekhez","Ha new-zni szeretnénk","Ha metódusokat és alapértékeket akarunk futáskor","Service-ek létrehozásához"],e:"A type bármi lehet, pl. unió is."},
+{c:3,q:"Mikor használunk `class`-t?",a:["Ha az objektumhoz funkcionalitás (metódusok, alapértékek) is kell","Ha csak az API adat alakját írnánk le","Ha uniót szeretnénk","Soha, Angularban tilos"],e:""},
+{c:3,q:"Mi a csapda a `this.http.get<Developer[]>(url)` hívásnál?",a:["A `<Developer[]>` csak a TypeScriptnek szól; futáskor sima objektumok jönnek, metódusok nélkül","A hívás Developer példányokat ad vissza, de üres mezőkkel","A get csak egy elemet tud visszaadni","A TypeScript futáskor ellenőrzi a típust és hibát dob"],e:"A konzolban is látszik: {name: …} vs Developer {name: …}."},
+{c:3,q:"Hogyan alakítjuk a sima objektumokat valódi Developer példányokká?",a:["`data.map(x => Object.assign(new Developer(), x))`","`data as Developer[]`","`<Developer[]>data`","`JSON.parse(data)`"],e:"Új Developer példány, amibe átmásoljuk a sima objektum mezőit, így már vannak metódusai."},
+{c:3,q:"Mi a különbség a `public` és `private` injektálás között?",a:["public: a HTML sablonból is elérhető; private: csak a TS osztályon belül","public: minden komponens látja; private: csak a root","private gyorsabb, public lassabb","Nincs különbség"],e:"Pl. `constructor(public service: DeveloperService, private router: Router)`"},
+{c:3,q:"Milyen láthatóságú alapból egy osztálymező TypeScriptben?",a:["public","private","protected","readonly"],e:"TS-ben minden osztálymező alapból public."},
+/* ch3 code */
+{c:3,k:1,q:"Két különböző komponens injektálja ezt a service-t. Az egyik `push`-ol a tömbbe. Mit lát a másik?",code:"@Injectable({ providedIn: 'root' })\nexport class DeveloperService {\n  developers: Developer[] = [];\n}",a:["Az új elemet is, mert ugyanazt a singleton példányt használják","Üres tömböt, mert mindkettő saját példányt kap","Hibát, mert a tömb private","Csak akkor látja, ha újra injektálja"],e:"providedIn: 'root' → egy példány az egész alkalmazásban."},
+{c:3,k:1,q:"Melyik működik a komponens sablonjában?",code:"constructor(public service: DeveloperService,\n            private router: Router) { }",a:["`*ngFor=\"let dev of service.developers\"`","`{{ router.url }}`","Mindkettő","Egyik sem, sablonból injektált mező nem érhető el"],e:"A private mező csak a TS osztályon belül érhető el, sablonból nem."},
+{c:3,k:1,q:"`isLoggedIn` értéke `false`. Mi történik a `<p>` elemmel?",code:"<p *ngIf=\"isLoggedIn\">Üdv újra!</p>",a:["Nem kerül be a DOM-ba","Bekerül, csak láthatatlan (display:none)","Bekerül, és kiírja: false","Hibát dob a sablon"],e:"A strukturális direktíva elemet hoz létre vagy távolít el a DOM-ból."},
+{c:3,k:1,q:"Mire szolgál ez a fejléc egy HTTP kérésben?",code:"headers: {\n  Authorization: 'Bearer ' + token\n}",a:["A védett végpontnál igazolja, hogy a felhasználó hitelesítve van","Bejelentkezéskor elküldi a jelszót","A backend válaszát titkosítja","Megadja a válasz formátumát (JSON)"],e:"A BE ellenőrzi a tokent: ha érvényes, végrehajtja a kérést, ha nem, 401."},
+{c:3,k:1,q:"A `Developer` osztálynak van `getFullName()` metódusa. Mi történik?",code:"this.http.get<Developer[]>(url).subscribe(data => {\n  console.log(data[0].getFullName());\n});",a:["TypeError: a getFullName nem függvény, mert sima objektum érkezett","Kiírja a teljes nevet","A TypeScript fordításkor hibát dob","undefined-ot ír ki, de hiba nincs"],e:"A generikus típus csak a fordítónak szól. Megoldás: Object.assign(new Developer(), x)."},
+{c:3,k:1,q:"Melyik eszközt érdemes választani erre?",code:"_____ Status = 'active' | 'inactive' | 'banned';",a:["type","interface","class","enum interface"],e:"Uniót type-pal adunk meg."},
+
+/* ===== 4. Haladó eszközök ===== */
+{c:4,q:"Mik a környezeti változók (environment variables)?",a:["Beállítások, amik a környezettől függően változhatnak, pl. a backend API címe","A böngésző által biztosított globális változók","A komponensek lokális állapota","Az operációs rendszer felhasználói adatai"],e:""},
+{c:4,q:"Miért használunk közös environment.ts fájlt?",a:["Hogy ne kelljen pl. az API címet mindenhol külön átírni","Mert a TypeScript enélkül nem fordul","Mert a routing csak így működik","Hogy a komponensek gyorsabban fussanak"],e:""},
+{c:4,q:"Melyik paranccsal hozhatók létre az environment fájlok?",a:["`ng g environments`","`npm install environments`","`ng g pipe environments`","`ng new environments`"],e:"Hivatkozás: `import { environment } from '../../environments/environment'`"},
+{c:4,q:"Mivel cserélhetők a fejlesztői és éles environment fájlok build szerint?",a:["Az angular.json-ben megadott fileReplacements segítségével","A tsconfig.json target mezőjével","Egy route guarddal","A package.json dependencies részével"],e:""},
+{c:4,q:"Mi az `inject()`?",a:["A dependency injection másik megoldása, a konstruktorparaméteres megoldás helyett","Egy RxJS operátor","Egy beépített pipe","Egy strukturális direktíva"],e:""},
+{c:4,q:"Hol jön elő igazán az `inject()` előnye?",a:["Öröklődésnél: a leszármazottaknak nem kell a függőséget elkérniük és `super(...)`-rel továbbadniuk","HTTP kéréseknél, mert gyorsabbá teszi őket","Routingnál, mert URL paramétert olvas","CSS-nél, mert stílust injektál"],e:"Az ős maga kéri el a függőséget, a leszármazottaknak nem kell semmit csinálniuk."},
+{c:4,q:"Mire szolgál a pipe?",a:["Adatok formázására a sablonban, a komponens adatának módosítása nélkül","Komponensek közti adatküldésre","HTTP kérések indítására","A DOM elemek törlésére"],e:""},
+{c:4,q:"Mi a pipe szintaxisa?",a:["`{{ érték | pipeNév: paraméter }}`","`{{ pipeNév(érték) }}`","`[pipeNév]=\"érték\"`","`*pipeNév=\"érték\"`"],e:""},
+{c:4,q:"Mi az előnye a pipe-nak egy `dev.GetFormattedSalary()` metódussal szemben?",a:["A megjelenítési logika a template-ben marad, kevesebb ismétlődő kód kell, az üzleti logika tisztább","Gyorsabbá teszi a HTTP kéréseket","Módosítja a komponens eredeti adatát","Szerveroldalon fut"],e:""},
+{c:4,q:"Melyik NEM beépített Angular pipe?",a:["`sortBy`","`currency`","`date`","`async`"],e:"Beépítettek: uppercase, lowercase, titlecase, date, currency, number, percent, slice, json, async."},
+{c:4,q:"Láncolhatók-e a pipe-ok?",a:["Igen, pl. `{{ érték | lowercase | slice:0:3 }}`","Nem, egy kifejezésben csak egy pipe lehet","Csak saját pipe-ok láncolhatók","Csak az async pipe után"],e:""},
+{c:4,q:"Hogyan készíthetünk saját pipe-ot?",a:["`ng g pipe PipeNeve`","`npm install pipe`","`ng g environments`","Saját pipe nem készíthető"],e:""},
+{c:4,q:"Mit csinál az async pipe?",a:["Feliratkozik az Observable-re, megjeleníti a kibocsátott értéket, és a komponens megszűnésekor automatikusan leiratkozik","Aszinkronná teszi a komponens összes metódusát","Késlelteti a sablon megjelenítését 1 másodperccel","HTTP kérést küld a sablonból"],e:""},
+{c:4,q:"Miben különbözik az async pipe-os („új”) megközelítés a régitől?",a:["Nem kell a komponensben subscribe()-ot írni és helyi tömbben tárolni az adatot","A régi megközelítés nem használt Observable-t","Az új megközelítésben a sablon szinkron","Az új megközelítés csak Promise-szal működik"],e:"Régi: subscribe + this.developers = data. Új: developers$ = service.getDevelopers() + | async."},
+{c:4,q:"Mit jelez a `$` a `developers$` változónévben?",a:["Hogy Observable-t tartalmaz","Hogy privát mező","Hogy pénzösszeg","Hogy környezeti változó"],e:"Elnevezési konvenció."},
+{c:4,q:"Mi jellemzi a stateful komponenst/service-t?",a:["Helyi állapotot tárol, amit később olvas és módosít (pl. `developers: Developer[] = []`)","Csak a kívülről kapott adatokból dolgozik","Nincs egyetlen mezője sem","Csak a sablonban létezik"],e:""},
+{c:4,q:"Mi jellemzi a stateless komponenst?",a:["Nem támaszkodik saját, tartós helyi állapotra; csak kívülről kapott adatok alapján dolgozik (pl. `@Input()`)","Saját állapotot tölt be és módosít","Mindig service-t injektál","Nem lehet sablonja"],e:"Pl. AnimalCardComponent: csak megjeleníti, amit kap."},
+{c:4,q:"Mi az RxJS?",a:["JavaScript könyvtár aszinkron adatfolyamok és események kezelésére","Angular routing modul","CSS preprocessor","JS engine"],e:""},
+{c:4,q:"Mi a reaktív programozás alapgondolata?",a:["Ne folyamatosan kérdezd le, történt-e változás, hanem iratkozz fel az adatfolyamra és reagálj, amikor adat érkezik","Minden változást időzítővel kérdezz le","Az adatokat mindig szinkron dolgozd fel","Csak egyszer kérj le adatot"],e:""},
+{c:4,q:"Mit csinál a `map` operátor RxJS-ben?",a:["Átalakítja az érkező adatot","Feliratkozik az adatfolyamra","Lezárja az adatfolyamot","Új Subject-et hoz létre"],e:""},
+{c:4,q:"Hány értéket bocsáthat ki egy Observable?",a:["Nullát, egyet vagy többet, majd befejeződhet (complete) vagy hibára futhat (error)","Pontosan egyet","Pontosan kettőt: egy adatot és egy hibát","Végtelen sokat, sosem fejeződhet be"],e:""},
+{c:4,q:"Mi az Observer szerepe?",a:["Megmondja, mit csinálunk az érkező adatokkal, a hibával és a befejezéssel (next, error, complete)","Maga az adatfolyam","Értékeket küld az adatfolyamba","Leiratkoztat a komponens megszűnésekor"],e:""},
+{c:4,q:"Mi a Subject?",a:["Olyan Observable, amibe mi magunk is tudunk értéket küldeni `.next(érték)`-kel","Egy HTTP kérés eredménye","Egy pipe típus","Egy komponens dekorátora"],e:""},
+{c:4,q:"Melyik igaz a BehaviorSubject-re?",a:["Kezdőértéke kötelező","Nem lehet kezdőértéke","Nem lehet rá feliratkozni","Csak egyszer lehet `.next()`-et hívni"],e:"`new BehaviorSubject<number>(0)`"},
+{c:4,q:"Mit kap egy új feliratkozó a BehaviorSubject-től?",a:["Azonnal a legutóbbi értéket","Semmit, csak a következő értéket","Az összes korábbi értéket","Mindig a kezdőértéket"],e:""},
+{c:4,q:"Hogyan kérhető le bármikor a BehaviorSubject aktuális értéke?",a:["`.value`","`.current()`","`.last`","Csak feliratkozással"],e:""},
+{c:4,q:"Mi a BehaviorSubject tipikus használata?",a:["Megosztott állapot egy service-ben (pl. kosár elemszáma), amire több komponens is feliratkozik","Egy komponens CSS-ének tárolása","Route paraméterek olvasása","Környezeti változók cseréje"],e:""},
+{c:4,q:"Mire jó a `@ViewChild`?",a:["A komponens hozzáfér a saját sablonjában lévő elemhez, direktívához vagy gyerekkomponenshez (pl. meghívja egy metódusát)","A szülő komponens elérésére","Egy service injektálására","Egy route paraméter kiolvasására"],e:""},
+{c:4,q:"Mi a `#card` a `<app-card #card>` elemen?",a:["Sablon referencia változó","CSS id szelektor","Route paraméter","Pipe paraméter"],e:"A @ViewChild('card') ezen a néven találja meg az elemet."},
+{c:4,q:"Mi a Content Projection?",a:["Egy komponens belsejébe a használó (szülő) komponens által megadott HTML-tartalmat illesztünk be","Egy komponens tartalmának másolása a szerverre","Egy kép kivetítése a háttérbe","Adat küldése gyerekből a szülőbe"],e:""},
+{c:4,q:"Mi jelöli a gyerek sablonjában, hova kerüljön a projektált tartalom?",a:["`<ng-content>`","`<router-outlet>`","`<ng-template>`","`<app-root>`"],e:"Több slot is lehet a select attribútummal."},
+{c:4,q:"Hogyan lehet több slot egy content projectionös komponensben?",a:["Az `<ng-content>` select attribútumával, pl. `select=\"[title]\"`","Több `<router-outlet>`-tel","Több @ViewChild-dal","Csak egy slot lehet"],e:""},
+/* ch4 code */
+{c:4,k:1,q:"Mit jelenít meg?",code:"{{ 'ANGULAR' | lowercase | slice:0:3 }}",a:["ang","ANG","angular","nga"],e:"Előbb kisbetűsít (angular), majd az első 3 karaktert veszi."},
+{c:4,k:1,q:"Mi jelenik meg a konzolon, sorrendben?",code:"const count = new BehaviorSubject<number>(0);\ncount.subscribe(v => console.log('A:', v));\ncount.next(1);\ncount.subscribe(v => console.log('B:', v));\ncount.next(2);",a:["A:0, A:1, B:1, A:2, B:2","A:1, B:1, A:2, B:2","A:0, A:1, B:0, A:2, B:2","A:0, B:0, A:1, B:1, A:2, B:2"],e:"A azonnal megkapja a 0-t; B feliratkozáskor a legutóbbit (1) kapja; a 2-t mindkettő."},
+{c:4,k:1,q:"Mit ír ki a konzolra?",code:"const numbers$ = new Observable<number>(s => {\n  s.next(1); s.next(2); s.next(3);\n  s.complete();\n});\nnumbers$.subscribe({\n  next: v => console.log(v),\n  complete: () => console.log('Vége')\n});",a:["1, 2, 3, Vége","Vége, 1, 2, 3","Csak 3","Semmit, mert nincs error ág"],e:"A next ág minden értékre lefut, a végén a complete."},
+{c:4,k:1,q:"Hova kerül a „The Matrix” szöveg?",code:"<!-- card.component.html -->\n<div class=\"card\">\n  <h1><ng-content select=\"[title]\"></ng-content></h1>\n  <p><ng-content select=\"[intro]\"></ng-content></p>\n</div>\n\n<!-- szülő -->\n<app-card>\n  <span title>The Matrix</span>\n  <span intro>Lorem ipsum...</span>\n</app-card>",a:["A kártya `<h1>` elemébe","A kártya `<p>` elemébe","Sehova, mert a span nem projektálható","A szülő komponens h1 elemébe"],e:"A title attribútumú span a select=\"[title]\" slotba kerül."},
+{c:4,k:1,q:"Mi történik a Frissít gomb megnyomásakor?",code:"<!-- sablon -->\n<button (click)=\"update()\">Frissít</button>\n<app-card #card></app-card>\n\n// TS\n@ViewChild('card') cardComp!: CardComponent;\nupdate(): void {\n  this.cardComp.changeMessage();\n}",a:["A szülő meghívja a gyerek CardComponent changeMessage() metódusát","A gyerek meghívja a szülő update() metódusát","Új CardComponent példány jön létre","Hiba, mert #card csak CSS-ben használható"],e:"A ViewChild a #card sablonreferencián keresztül éri el a gyereket."},
+{c:4,k:1,q:"Melyik komponens stateful?",code:"export class AnimalCardComponent {\n  @Input() animal!: Animal;\n}\n\nexport class AnimalsComponent {\n  service = inject(AnimalApiService);\n  animals$ = this.service.getAnimals();\n  caredAnimals: Animal[] = [];\n}",a:["AnimalsComponent","AnimalCardComponent","Mindkettő","Egyik sem"],e:"Az AnimalsComponent saját állapotot kezel (betölt, módosít); az AnimalCard csak megjeleníti, amit kap."}
+];
+
+const CARDS = [
+{c:1,s:"1.1",q:"Hogyan kommunikál egymással a frontend és a backend?",p:["Frontend: a felhasználó oldalán futó rész (HTML, CSS, JS…).","Backend: a szerveroldal (Node, Java, .NET…).","A FE HTTP kérést (request) küld a BE-nek.","A BE API-n keresztül válaszol (response), jellemzően JSON-ban."]},
+{c:1,s:"1.1",q:"Mi a hoisting, és mi a különbség a var és a let/const viselkedése között?",p:["A JS a futtatás előtt előkészíti a deklarációkat a saját hatókörükben, de értéket ekkor még nem kapnak.","var: deklaráció előtt olvasva `undefined` az értéke.","let/const: szintén hoistolódik, de TDZ (Temporal Dead Zone) alakul ki, így `ReferenceError`-t kapunk.","Scope: var → function/global; let, const → block scope."],code:"console.log(x); // undefined\nvar x = 10;\n\nconsole.log(y); // ReferenceError\nlet y = 10;"},
+{c:1,s:"1.2",q:"Sorold fel és röviden magyarázd el a JavaScript nyelvi jellemzőit!",p:["High-level: absztrakció, elrejti az alacsony szintű részeket (pl. memóriakezelés).","Garbage collected: a nem használt memóriát automatikusan felszabadítja.","Prototype-based OOP: egy objektum a prototípusán keresztül is elér tulajdonságokat, metódusokat; így működik az öröklődés.","Multi-paradigm: procedurális, OOP, funkcionális.","Interpretált (JIT): a motor feldolgozza, lefordítja és futás közben optimalizálja a kódot.","Dinamikusan típusos: a típus futás közben változhat.","Single threaded, non-blocking, event loop: egy szálon fut, az aszinkron működést a runtime és az event loop segíti (single threaded ≠ szinkron).","First-class functions: a függvény érték, változóba tehető, átadható, visszaadható."]},
+{c:1,s:"1.3",q:"Mi a különbség az interpretált, a fordított és a JIT végrehajtás között?",p:["Interpretált: futás közben egy interpreter értelmezi és hajtja végre (pl. Python). Forráskód → Interpreter → Végrehajtás.","Fordított: előbb gépi vagy köztes kódra fordítják, azt futtatják (C, C++, Rust). Forráskód → Compiler → gépi kód → Linker → Executable → CPU.","JIT: ötvözi a kettőt; köztes reprezentációban fut, a gyakran használt részeket futás közben gépi kódra fordítja és optimalizálja."]},
+{c:1,s:"1.4",q:"Mi a különbség az imperatív és a deklaratív programozás között?",p:["Deklaratív: azt írjuk le, MIT szeretnénk eredményként, nem a lépéseket (pl. SQL).","Imperatív: utasítások sorozata, amelyek a program állapotát változtatják; a HOGYAN a hangsúlyos (pl. C, C++)."]},
+{c:1,s:"1.5",q:"Mi a JavaScript runtime, és milyen részekből áll?",p:["Teljes végrehajtási környezet, amelyben a JS program fut. A setTimeout, fetch stb. funkciókat a böngésző adja Web API-ként.","JS Engine: a motor, tartalmazza a Call Stacket és a Heapet; szükséges, de nem elégséges.","Call Stack: LIFO, itt futnak a feladatok (execution context / stack frame).","Heap: objektumok, dinamikus adatok; a GC szabadítja fel a nem elérhetőket.","Web API-k: Fetch, Timer, DOM.","Callback/Task Queue: a várakozó aszinkron callbackek, FIFO. A promise callbackek a Microtask Queue-ba kerülnek.","Event Loop: ha a queue-ban van elem és a Call Stack üres, áthelyezi végrehajtásra."]},
+{c:1,s:"1.5",q:"Hogyan fut le egy aszinkron művelet a JS runtime-ban?",p:["A JS továbbra is egy szálon fut; a kód a Call Stacken fut.","A runtime (pl. Web API) által kezelt aszinkron művelet kikerül, a JS közben folytatódik a Call Stacken.","A hosszú szinkron műveletek (pl. százmilliós for loop) nem kerülnek át, így blokkolnak.","Az eredmény nem rögtön a Call Stackre, hanem előbb a Callback Queue-ba kerül.","Az event loop figyeli mindkettőt: ha a Call Stack üres és van várakozó task, áthelyezi, és az lefut."]},
+{c:1,s:"1.6",q:"Mi a JS engine, mi a része, és milyen lépésekben dolgozza fel a kódot?",p:["A szoftverkomponens, ami a JS kódot feldolgozza és végrehajtja. Pl. V8 (Chromium, Node.js), SpiderMonkey (Firefox), JavaScriptCore (Safari).","Része a Call Stack (benne a stack frame / execution context: paraméterek, lokális változók, visszatérési infó) és a Heap.","Lépések: Parsing (szintaxis ellenőrzés) → AST (fa alakú reprezentáció) → Compile → Bytecode (köztes utasításkészlet) → Execution → Optimization (sokszor futó kód optimalizálása, JIT)."]},
+{c:1,s:"1.7",q:"Mi a TypeScript, miért használják, és mi történik build során?",p:["A TypeScript a JS supersete (bővített halmaz), kibővíti a JavaScriptet.","Nem külön runtime: TS-ből JS készül, ami a megszokott módon fut.","JS-ben típust csak kommentben lehet megadni (fejlesztést, IntelliSense-t segít), a TS típusellenőrzést ad; ezért népszerű nagyvállalatoknál.","Build: létrejön a célkörnyezetben futtatható kimenet (TS→JS fordítás, bundling, minifikáció, optimalizáció)."]},
+{c:1,s:"1.7",q:"Mi az ECMAScript és az npm?",p:["ECMAScript (ES): a JS nyelv szabályainak hivatalos neve; specifikálja a működést és a nyelvi elemeket (ES5, ES2016, ES2018…).","TS-ben a cél JS verzió a tsconfig.json compilerOptions részében állítható.","npm = Node Package Manager: csomagkezelő és registry; csomagok telepítése, függőségek és verziók kezelése, scriptek futtatása (pl. `npm install lodash`)."]},
+
+{c:2,s:"2.1",q:"Mi az AJAX és a jQuery, és hogyan vezettek a frameworkökhöz?",p:["AJAX: nem framework vagy library, hanem technika; a böngésző teljes újratöltés nélkül kér adatot a szervertől, és ez alapján módosítja az oldalt. Ma inkább JSON-nal.","jQuery: JS library, ami leegyszerűsítette a DOM-kezelést, az eseménykezelést és az AJAX kéréseket.","Egyre több komplex library jelent meg, és igény lett olyan rendszerre, ami strukturáltan segíti az alkalmazás felépítését → frameworkök, pl. Angular."]},
+{c:2,s:"2.2",q:"Mi a különbség az SPA és az MPA között? Mi az SSR?",p:["MPA: hagyományos modell, nézetváltáskor az oldal újratöltődik, új view jön létre.","SSR (Server Side Rendering): a szerver előre elkészíti a HTML-t; régen jellemzően MPA + SSR.","SPA: egy fő HTML dokumentum köré épül, a navigációt és a UI-frissítést a kliensoldali JS kezeli.","Az SPA-hoz szorosan kapcsolódik az AJAX: nincs teljes újratöltés, csak részeket kér le."]},
+{c:2,s:"2.3",q:"Mi a különbség a library és a framework között?",p:["Library: újrafelhasználható kódkönyvtár, amit a saját programunk hív (pl. jQuery, Lodash).","Framework: alkalmazásstruktúrát és életciklust biztosít; a saját kódunkat illesztjük bele, ez adja a kereteket.","Az Angular framework: component architecture, template system, dependency injection, routing, forms, change detection, tesztelési támogatás."]},
+{c:2,s:"2.4",q:"Mi a Virtual DOM, és mit használ helyette az Angular?",p:["Virtual DOM: JS-ben reprezentált, memóriában lévő absztrakció a tényleges DOM-ról.","Célja, hogy változáskor ne a teljes DOM-ot kelljen módosítani; sok változtatás után csak a végső érvényes állapotot kell a valódi DOM-ba írni, ez gyorsabb a teljes újrarendelésnél.","Az Angular VDOM helyett saját renderelési és Change Detection mechanizmust használ, ami eldönti, kell-e frissíteni a megjelenített UI-t."]},
+{c:2,s:"2.5",q:"Mi az adatkötés? Mi a különbség a Two-Way és a One-Way binding között?",p:["Adatkötés: kapcsolat a komponens adatai és a template között.","Two-Way: ha a felhasználó módosítja az adatot, változik a komponens értéke; ha a komponens értéke változik, frissül a felület. Szintaxis: `[(ngModel)]`.","One-Way: az adatkapcsolat csak egy irányba történik. Ilyen az interpoláció, a property binding és az event binding."],code:"<input type=\"text\" [(ngModel)]=\"newTodo\" />"},
+{c:2,s:"2.5.1",q:"Mit mutat a template flow? Mi a különbség a kliensoldali és szerveroldali template között?",p:["A template flow azt mutatja, hogyan áramlik az adat és az esemény a komponens és a felület között.","Kliensoldal (Angular): a szerver HTML + JS + CSS-t küld, az app betölt, majd API kérésre JSON jön, és a renderelés a frontenden történik.","Szerveroldal (pl. Twig): a szerver rendereli a template-et, a böngésző a már legenerált HTML-t tölti be."]},
+{c:2,s:"2.6",q:"Mi egy Angular komponens, miből áll, és mi a Component Tree?",p:["A komponens az Angular alkalmazás alapvető építőeleme.","Részei: HTML sablon, CSS stílus, TS logika, opcionálisan tesztek.","A váz generálható (pl. footer, list, navigation), majd a HTML-ben elhelyezhető: `<app-navigation></app-navigation>`.","Az alkalmazás komponensekből álló hierarchiát alkot: ez a Component Tree."]},
+{c:2,s:"2.7",q:"Mi a routing Angularban?",p:["Meghatározza, hogy egy adott URL-hez milyen komponens vagy nézet tartozik (frontend végpontok); Angularban az Angular Router biztosítja.","SPA esetén mindez teljes HTML újratöltés nélkül történik.","Dinamikus URL-hez route paramétert használunk: `/users/:id` → `/users/42`."]},
+
+{c:3,s:"3.1",q:"Mik a direktívák, és milyen típusaik vannak?",p:["A HTML elemek megjelenítését, viselkedését vagy DOM szerkezetét módosítják.","Komponens: saját sablonnal rendelkező, újrafelhasználható UI elem, pl. `<app-navigation>`.","Attribútum direktíva: meglévő elem viselkedését/megjelenését módosítja, pl. `[ngClass]`, `[ngStyle]`.","Strukturális direktíva: elemeket hoz létre vagy távolít el a DOM-ból, pl. `*ngIf`, `*ngFor`."]},
+{c:3,s:"3.2",q:"Mi egy service Angularban?",p:["TypeScript osztály, ami az alkalmazás valamely funkciójáért vagy üzleti logikájáért felel.","`providedIn: 'root'` esetén egyetlen példány van belőle, amit több komponens megosztva használ (singleton)."]},
+{c:3,s:"3.3",q:"Mi a Dependency Injection, és hogyan adható meg Angularban?",p:["Tervezési megoldás: egy osztály a függőségeit nem maga hozza létre, hanem kívülről kapja meg.","Megadható constructoron keresztül vagy `service = inject(SomethingService)` formában."]},
+{c:3,s:"3.4",q:"Mi a Singleton, és mi a következménye Angularban?",p:["Tervezési minta: egy osztályból egyetlen közös példány jön létre, amit az egész alkalmazás használ.","Angularban a `providedIn: 'root'` service-ek singletonok: egy injektoron belül mindenki ugyanazt a példányt kapja.","Következmény: ha a ListComponent betesz egy fejlesztőt a `service.developers` tömbbe, a Create- és EditComponent is ugyanazt a tömböt látja."]},
+{c:3,s:"3.5",q:"Sorold fel a SOLID elveket egy-egy Angular példával!",p:["S – Single Responsibility: egy osztály, egy felelősség. A komponens megjelenít, a service adatot kér le.","O – Open/Closed: nyitott a bővítésre, zárt a módosításra. Új funkcióhoz új komponenst/pipe-ot írunk.","L – Liskov Substitution: a leszármazott helyettesíthesse az őst. Ha B extends A, ahol A működik, ott B is.","I – Interface Segregation: több kicsi interface jobb egy nagynál. Külön User, Token, Skill.","D – Dependency Inversion: absztrakcióktól függjünk, a függőséget kívülről kapjuk. Dependency injection, nem `new`."]},
+{c:3,s:"3.6",q:"Mi az autentikáció és az autorizáció? Hogyan zajlik a tokenes bejelentkezés?",p:["Autentikáció: hitelesítés („ki vagy?”). Autorizáció: jogosultságkezelés („mit csinálhatsz?”).","1. A FE elküldi a felhasználónevet és jelszót (POST /login).","2. A BE ellenőrzi, és siker esetén aláírt tokent küld vissza.","3. A FE eltárolja (pl. localStorage), így nem kell újra bejelentkeznie.","4. Védett kérésnél a fejlécben küldi: `Authorization: Bearer <token>`.","5. A BE ellenőrzi: érvényes → végrehajtja, nem érvényes → 401 Unauthorized.","A route guard (canActivate) csak frontendes kényelmi funkció; valódi védelemhez a backendnek kell ellenőriznie."]},
+{c:3,s:"3.6.1",q:"Mi a token, és hol utazik a HTTP kommunikációban?",p:["Digitális igazolás, amivel a rendszer ellenőrzi, hogy a felhasználó hitelesítve van-e.","Általában a backend generálja, pl. sikeres bejelentkezés után.","Bejelentkezéskor a BE → FE irányban a válasz törzsében (response body) érkezik.","Későbbi kéréseknél (pl. profil lekérése) a FE a kérés fejlécében (request header) küldi."]},
+{c:3,s:"3.7",q:"Mi a különbség az interface, a type és a class között? Mi a csapda a http.get-nél?",p:["interface: egy objektum alakját írja le; nem new-zható, fordításkor eltűnik; API-ból érkező adat leírására preferált.","type: típusálnév, bármi lehet (pl. unió); nem new-zható, nem marad meg futáskor.","class: adat és működés (metódusok, alapértékek); new-zható, futáskor megmarad; ha funkcionalitás is kell.","Csapda: a `http.get<Developer[]>(url)` típusa csak a TS-nek szól; futáskor sima objektumok jönnek metódusok nélkül.","Megoldás: `data.map(x => Object.assign(new Developer(), x))`."]},
+{c:3,s:"3.8",q:"Mi a különbség a public és a private injektálás között?",p:["`constructor(public service: DeveloperService, private router: Router) { }`","public: a mező a HTML sablonból is elérhető, pl. `*ngFor=\"let dev of service.developers\"`.","private: csak a TS osztályon belül érhető el, sablonból nem.","TS-ben minden osztálymező alapból public."]},
+
+{c:4,s:"4.1",q:"Mik a környezeti változók, és hogyan kezeljük őket Angularban?",p:["Környezettől függően változó beállítások, pl. másik backend API cím.","Hogy ne kelljen mindenhol átírni, közös environment fájlt használunk: `ng g environments`.","Hivatkozás: `import { environment } from '../../environments/environment'`.","Extra: külön fejlesztői és éles environment hozható létre, amit az angular.json fileReplacements beállítása cserél build szerint."]},
+{c:4,s:"4.2",q:"Mi az inject(), és mi az előnye a konstruktoros DI-hez képest?",p:["A dependency injection másik megoldása, a konstruktorparaméter helyett.","Az igazi előnye öröklődésnél jön elő: ha A konstruktorban kér függőséget, B-nek (és minden további szintnek) is el kell kérnie, és `super(...)`-rel továbbadnia.","inject()-tel az ős maga kéri el, a leszármazottaknak nem kell semmit csinálniuk."],code:"class BaseListComponent2 {\n  service = inject(DeveloperService);\n}\nclass DeveloperListComponent2 extends BaseListComponent2 { }"},
+{c:4,s:"4.3",q:"Mi a pipe? Mondj beépített pipe-okat és egy példát!",p:["Adatok formázására szolgál a sablonban, a komponens adatának módosítása nélkül: `{{ érték | pipeNév: paraméter }}`.","Előny: a megjelenítési logika a template-ben marad, kevesebb ismétlődő kód, tisztább üzleti logika.","Beépítettek: uppercase, lowercase, titlecase, date, currency, number, percent, slice, json, async. Láncolhatók.","Saját pipe: `ng g pipe PipeNeve`."],code:"{{ dev.salary | currency:'HUF':'symbol':'1.0-0':'hu-HU' }}\n{{ érték | lowercase | slice:0:3 }}"},
+{c:4,s:"4.3.1",q:"Mit csinál az async pipe? Mi a különbség a régi és az új megközelítés között?",p:["Régi: a komponens subscribe()-bal feliratkozik, és helyi tömbben tárolja az adatot.","Új: a komponensben az Observable-t tároljuk, a sablonban `| async`-kel jelenítjük meg.","Az async pipe feliratkozik, megjeleníti a kibocsátott értéket, és a komponens megszűnésekor automatikusan leiratkozik.","A `$` a névben (pl. `developers$`) jelzi, hogy Observable-t tartalmaz."],code:"developers$ = this.developerService.getDevelopers();\n\n<div *ngFor=\"let dev of developers$ | async\">{{ dev.name }}</div>"},
+{c:4,s:"4.4",q:"Mi a különbség a stateful és a stateless komponens között?",p:["Stateful: helyi állapotot tárol, amit később olvas és módosít, pl. `developers: Developer[] = []`.","Stateless: nem támaszkodik saját, tartós helyi állapotra; csak kívülről kapott adatok alapján dolgozik, pl. `@Input() animal`."]},
+{c:4,s:"4.5",q:"Mi az RxJS, mi a reaktív programozás alapgondolata, és melyek a fő fogalmai?",p:["JS könyvtár aszinkron adatfolyamok és események kezelésére.","Alapgondolat: ne folyamatosan kérdezd le, történt-e változás, hanem iratkozz fel az adatfolyamra, és reagálj, amikor adat érkezik.","Fogalmak: Observable (adatfolyam), Observer (feldolgozza az eseményeit), subscribe (feliratkozás), pipe, map (átalakítja az érkező adatot), BehaviorSubject."]},
+{c:4,s:"4.6",q:"Mi az Observable és az Observer?",p:["Observable: maga az adatfolyam; időben nulla, egy vagy több értéket bocsáthat ki, majd befejeződhet (complete) vagy hibára futhat (error).","Observer: megmondja, mit csinálunk az érkező adattal (next), a hibával (error) és a befejezéssel (complete)."],code:"numbers$.subscribe({\n  next: value => console.log(value),\n  error: err => console.error(err),\n  complete: () => console.log('Vége')\n});"},
+{c:4,s:"4.7",q:"Mi a Subject és a BehaviorSubject? Mi a tipikus használata?",p:["Subject: olyan Observable, amibe mi magunk is küldhetünk értéket: `.next(érték)`.","BehaviorSubject: speciális Subject; a kezdőérték kötelező, az új feliratkozó azonnal a legutóbbi értéket kapja, az aktuális érték bármikor lekérhető (`.value`).","Tipikus használat: megosztott állapot egy service-ben (pl. kosár elemszáma), amire több komponens feliratkozik."]},
+{c:4,s:"4.8",q:"Mire jó a @ViewChild?",p:["A komponens hozzáfér a saját sablonjában lévő elemhez, direktívához vagy gyerekkomponenshez, pl. meghívhatja a gyerek egy metódusát.","A sablonban sablon referencia változóval jelöljük, pl. `#card`."],code:"<app-card #card></app-card>\n\n@ViewChild('card') cardComp!: CardComponent;\nupdate() { this.cardComp.changeMessage(); }"},
+{c:4,s:"4.9",q:"Mi a Content Projection?",p:["Egy komponens belsejébe a használó (szülő) komponens által megadott HTML-tartalmat illesztünk be.","A gyerek sablonjában `<ng-content>` jelöli, hova kerüljön a tartalom; több slot is lehet a select attribútummal.","ngFor-ral kombinálva több kártya is létrehozható különböző tartalommal."],code:"<!-- gyerek -->\n<h1><ng-content select=\"[title]\"></ng-content></h1>\n\n<!-- szülő -->\n<app-card><span title>The Matrix</span></app-card>"}
+];
+
+QUIZ.forEach((q,i)=>q.id=i);
+CARDS.forEach((c,i)=>c.id=i);
+
+/* ---------- utils ---------- */
+const $=s=>document.querySelector(s);
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function fmt(s){return esc(s).replace(/`([^`]+)`/g,"<code>$1</code>")}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const SHAPES=[
+ '<svg viewBox="0 0 24 24"><path d="M12 3 22 20H2z"/></svg>',
+ '<svg viewBox="0 0 24 24"><path d="M12 2 22 12 12 22 2 12z"/></svg>',
+ '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>',
+ '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>'];
+
+/* ---------- storage ---------- */
+const KEY="fe-gyakorlo-v1", DATA_V=QUIZ.length+"-"+CARDS.length;
+let S={v:DATA_V,theme:null,quiz:null,cards:null};
+try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o&&o.v===DATA_V)S=Object.assign(S,o);else if(o)S.theme=o.theme||null}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+/* ---------- theme ---------- */
+function effTheme(){return document.documentElement.dataset.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}
+function paintThemeBtn(){const d=effTheme()==="dark";$("#themeBtn").innerHTML=(d?"☀":"☾")+" "+(d?"Világos mód":"Sötét mód")}
+if(S.theme)document.documentElement.dataset.theme=S.theme;
+$("#themeBtn").onclick=()=>{const n=effTheme()==="dark"?"light":"dark";document.documentElement.dataset.theme=n;S.theme=n;save();paintThemeBtn()};
+paintThemeBtn();
+
+/* ---------- views ---------- */
+function show(id){["home","quiz","cards","result"].forEach(v=>$("#"+v).hidden=v!==id);window.scrollTo(0,0)}
+let view="home";
+
+/* ---------- home ---------- */
+const setup={mode:"quiz",ch:0,random:true,kind:"all"};
+function quizPool(ch,kind){return QUIZ.filter(q=>(!ch||q.c===ch)&&(kind==="all"||(kind==="code"?q.k:!q.k)))}
+function cardPool(ch){return CARDS.filter(c=>!ch||c.c===ch)}
+function chName(ch){return ch?CH[ch].short:"Teljes anyag"}
+
+function renderHome(){
+  $("#m-quiz").setAttribute("aria-pressed",setup.mode==="quiz");
+  $("#m-cards").setAttribute("aria-pressed",setup.mode==="cards");
+  const chips=[0,1,2,3,4].map(ch=>{
+    const n=setup.mode==="quiz"?quizPool(ch,setup.kind).length:cardPool(ch).length;
+    const lbl=ch?CH[ch].name:"Teljes anyag";
+    return `<button type="button" class="chip" data-ch="${ch}" style="--c:var(--c${ch})" aria-pressed="${setup.ch===ch}"><span class="dot"></span>${ch?ch+". ":""}${esc(lbl)}<span class="n">${n}</span></button>`;
+  }).join("");
+  $("#chapterChips").innerHTML=chips;
+  $("#chapterChips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{setup.ch=+b.dataset.ch;renderHome()});
+  $("#kindSeg").hidden=setup.mode!=="quiz";
+  $("#kindSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.kind===setup.kind));
+  $("#randomToggle").checked=setup.random;
+  $("#modeNote").textContent=setup.mode==="quiz"
+    ?"A válaszlehetőségek sorrendje mindig keveredik. A gyakorlati/kód kérdések külön jelölést kapnak."
+    :"Fejben válaszolsz, majd értékeled magad. Hibás → 2 kártya múlva újra, Részben → 5 kártya múlva újra, amíg Helyes nem lesz.";
+  const n=setup.mode==="quiz"?quizPool(setup.ch,setup.kind).length:cardPool(setup.ch).length;
+  $("#startBtn").textContent=(setup.mode==="quiz"?"Kvíz indítása":"Kártyák indítása")+" · "+n+(setup.mode==="quiz"?" kérdés":" kártya");
+  $("#startBtn").disabled=!n;
+  renderResumes();renderReset();
+}
+function renderResumes(){
+  const out=[];
+  if(S.quiz){const s=S.quiz;out.push(`<div class="resume"><div class="txt"><b>Félbehagyott kvíz</b><span class="note">${esc(chName(s.ch))} · ${s.idx+(s.picked!=null?1:0)}/${s.order.length} kérdés · ${s.score} pont</span></div><div class="acts"><button class="btn" type="button" data-drop="quiz">Elvetés</button><button class="btn primary" type="button" data-go="quiz">Folytatás</button></div></div>`)}
+  if(S.cards){const s=S.cards;out.push(`<div class="resume"><div class="txt"><b>Félbehagyott kártyák</b><span class="note">${esc(chName(s.ch))} · ${s.doneCount}/${s.total} kész · ${s.queue.length} sorban</span></div><div class="acts"><button class="btn" type="button" data-drop="cards">Elvetés</button><button class="btn primary" type="button" data-go="cards">Folytatás</button></div></div>`)}
+  const el=$("#resumes");el.innerHTML=out.join("");el.hidden=!out.length;
+  el.querySelectorAll("[data-drop]").forEach(b=>b.onclick=()=>{S[b.dataset.drop]=null;save();renderHome()});
+  el.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>b.dataset.go==="quiz"?openQuiz():openCards());
+}
+let confirmReset=false;
+function renderReset(){
+  const a=$("#resetArea");
+  if(!confirmReset){a.innerHTML=`<button class="btn danger" type="button" id="resetBtn">Haladás törlése</button>`;$("#resetBtn").onclick=()=>{confirmReset=true;renderReset()}}
+  else{a.innerHTML=`<span class="confirm"><span class="note">Biztosan törlöd a mentett haladást?</span><button class="btn" type="button" id="rNo">Mégse</button><button class="btn danger" type="button" id="rYes">Törlés</button></span>`;
+    $("#rNo").onclick=()=>{confirmReset=false;renderReset()};
+    $("#rYes").onclick=()=>{S.quiz=null;S.cards=null;save();confirmReset=false;renderHome()}}
+}
+$("#m-quiz").onclick=()=>{setup.mode="quiz";renderHome()};
+$("#m-cards").onclick=()=>{setup.mode="cards";renderHome()};
+$("#randomToggle").onchange=e=>{setup.random=e.target.checked};
+$("#kindSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{setup.kind=b.dataset.kind;renderHome()});
+$("#startBtn").onclick=()=>setup.mode==="quiz"?startQuiz(quizPool(setup.ch,setup.kind).map(q=>q.id)):startCards();
+$("#homeBtn").onclick=goHome;
+function goHome(){view="home";show("home");renderHome()}
+
+/* ---------- quiz ---------- */
+function startQuiz(ids,opts){
+  const o=opts||{ch:setup.ch,kind:setup.kind,random:setup.random};
+  const order=o.random?shuffle(ids):ids.slice();
+  const perm={};order.forEach(id=>perm[id]=shuffle([0,1,2,3]));
+  S.quiz={ch:o.ch,kind:o.kind,random:o.random,all:ids.slice(),order,perm,idx:0,score:0,wrong:[],picked:null};
+  save();openQuiz();
+}
+function openQuiz(){view="quiz";show("quiz");renderQuiz()}
+function renderQuiz(){
+  const s=S.quiz, q=QUIZ[s.order[s.idx]], perm=s.perm[q.id];
+  $("#qPos").textContent=(s.idx+1)+" / "+s.order.length;
+  $("#qScore").textContent=s.score;
+  $("#qBar").style.width=((s.idx+(s.picked!=null?1:0))/s.order.length*100)+"%";
+  $("#qTags").innerHTML=`<span class="tag" style="--c:var(--c${q.c})">${esc(CH[q.c].short)}</span>`+(q.k?`<span class="tag code">Gyakorlati / kód kérdés</span>`:"");
+  $("#qText").innerHTML=fmt(q.q);
+  const pre=$("#qCode");if(q.code){pre.hidden=false;pre.firstChild.textContent=q.code}else pre.hidden=true;
+  const answered=s.picked!=null;
+  $("#qAnswers").innerHTML=perm.map((ai,i)=>{
+    let cls="ans", mark="";
+    if(answered){
+      if(ai===0){cls+=" right";mark='<span class="mark">✓</span>'}
+      else if(i===s.picked){cls+=" dim";mark='<span class="mark">✗</span>'}
+      else cls+=" dim";
+    }
+    return `<button type="button" class="${cls}" data-i="${i}" style="--k:var(--k${i+1})" ${answered?"disabled":""}><span class="sh">${SHAPES[i]}</span><span class="t">${fmt(q.a[ai])}</span>${mark}</button>`;
+  }).join("");
+  $("#qAnswers").querySelectorAll(".ans").forEach(b=>b.onclick=()=>pick(+b.dataset.i));
+  const fb=$("#qFeedback");
+  if(answered){
+    const ok=perm[s.picked]===0, last=s.idx===s.order.length-1;
+    fb.hidden=false;fb.className="feedback "+(ok?"ok":"bad");
+    fb.innerHTML=`<div class="v">${ok?"Helyes!":"Nem talált."}</div>${ok?"":`<p><b>Helyes válasz:</b> ${fmt(q.a[0])}</p>`}${q.e?`<p>${fmt(q.e)}</p>`:""}<div class="row-end"><button class="btn primary" type="button" id="qNext">${last?"Eredmény":"Következő →"}</button></div>`;
+    $("#qNext").onclick=nextQ;$("#qNext").focus({preventScroll:true});
+  }else{fb.hidden=true;fb.innerHTML=""}
+}
+function pick(i){
+  const s=S.quiz;if(s.picked!=null)return;
+  const id=s.order[s.idx];s.picked=i;
+  if(s.perm[id][i]===0)s.score++;else s.wrong.push(id);
+  save();renderQuiz();
+  $("#qFeedback").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"nearest"});
+}
+function nextQ(){
+  const s=S.quiz;
+  if(s.idx>=s.order.length-1){quizResult();return}
+  s.idx++;s.picked=null;save();renderQuiz();window.scrollTo(0,0);
+}
+function quizResult(){
+  const s=S.quiz;S.quiz=null;save();
+  const pct=Math.round(s.score/s.order.length*100);
+  const verdict=pct>=90?"Kiváló!":pct>=75?"Szép munka!":pct>=50?"Jó úton vagy.":"Van még mit gyakorolni.";
+  const miss=s.wrong.map(id=>{const q=QUIZ[id];return `<div class="item"><span class="tag" style="--c:var(--c${q.c});justify-self:start">${esc(CH[q.c].short)}</span><div>${fmt(q.q)}</div>${q.code?`<pre><code>${esc(q.code)}</code></pre>`:""}<div class="a">✓ ${fmt(q.a[0])}</div></div>`}).join("");
+  const r=$("#result");
+  r.innerHTML=`<div class="card result"><div class="label">${esc(chName(s.ch))} · kvíz vége</div><div class="big">${pct}%</div><h2>${verdict}</h2><div class="sumrow"><span class="pill ok">${s.score} helyes</span><span class="pill bad">${s.wrong.length} hibás</span><span class="pill" style="background:var(--surface-2)">${s.order.length} kérdés</span></div><div class="row-end" style="justify-content:flex-start"><button class="btn" type="button" id="rHome">Főoldal</button><button class="btn" type="button" id="rAgain">Új kör</button>${s.wrong.length?`<button class="btn primary" type="button" id="rWrong">Csak a hibásakat újra (${s.wrong.length})</button>`:""}</div></div>${miss?`<section class="block"><div class="label">Ezeket rontottad el</div><div class="miss">${miss}</div></section>`:""}`;
+  view="result";show("result");
+  $("#rHome").onclick=goHome;
+  $("#rAgain").onclick=()=>startQuiz(s.all,{ch:s.ch,kind:s.kind,random:s.random});
+  if(s.wrong.length)$("#rWrong").onclick=()=>startQuiz(s.wrong,{ch:s.ch,kind:s.kind,random:s.random});
+}
+$("#qExit").onclick=goHome;
+
+/* ---------- cards ---------- */
+function startCards(){
+  const ids=cardPool(setup.ch).map(c=>c.id);
+  S.cards={ch:setup.ch,random:setup.random,queue:setup.random?shuffle(ids):ids,total:ids.length,attempts:{},doneCount:0,firstOk:0,revealed:false,ratings:{ok:0,part:0,bad:0}};
+  save();openCards();
+}
+function openCards(){view="cards";show("cards");renderCard()}
+function renderCard(){
+  const s=S.cards, c=CARDS[s.queue[0]];
+  $("#cDone").textContent=s.doneCount+" / "+s.total;
+  $("#cLeft").textContent=s.queue.length;
+  $("#cBar").style.width=(s.doneCount/s.total*100)+"%";
+  const tries=s.attempts[c.id]||0;
+  $("#cTags").innerHTML=`<span class="tag" style="--c:var(--c${c.c})">${esc(CH[c.c].short)}</span><span class="tag" style="--c:var(--muted)">${esc(c.s)}</span>`+(tries?`<span class="tag" style="--c:var(--part)">${tries+1}. próbálkozás</span>`:"");
+  $("#cText").innerHTML=fmt(c.q);
+  $("#cReveal").hidden=s.revealed;
+  const m=$("#cModel");
+  if(s.revealed){m.hidden=false;m.innerHTML=`<div class="label">Mintaválasz</div><ul>${c.p.map(x=>`<li>${fmt(x)}</li>`).join("")}</ul>${c.code?`<pre><code>${esc(c.code)}</code></pre>`:""}`}
+  else{m.hidden=true;m.innerHTML=""}
+  $("#cRate").hidden=!s.revealed;
+}
+function reveal(){if(!S.cards||S.cards.revealed)return;S.cards.revealed=true;save();renderCard();$("#cRate").scrollIntoView({block:"nearest"})}
+function rate(r){
+  const s=S.cards;if(!s.revealed)return;
+  const id=s.queue.shift();
+  s.attempts[id]=(s.attempts[id]||0)+1;s.ratings[r]++;
+  if(r==="ok"){s.doneCount++;if(s.attempts[id]===1)s.firstOk++}
+  else{const pos=Math.min(s.queue.length,r==="bad"?2:5);s.queue.splice(pos,0,id)}
+  s.revealed=false;save();
+  if(!s.queue.length){cardsResult();return}
+  renderCard();window.scrollTo(0,0);
+}
+function cardsResult(){
+  const s=S.cards;S.cards=null;save();
+  const hard=Object.entries(s.attempts).filter(([,n])=>n>1).sort((a,b)=>b[1]-a[1]);
+  const list=hard.map(([id,n])=>{const c=CARDS[id];return `<div class="item"><span class="tag" style="--c:var(--c${c.c});justify-self:start">${esc(c.s)}</span><div>${fmt(c.q)}</div><div class="note">${n} próbálkozás kellett</div></div>`}).join("");
+  const pct=Math.round(s.firstOk/s.total*100);
+  $("#result").innerHTML=`<div class="card result"><div class="label">${esc(chName(s.ch))} · kártyák vége</div><div class="big">${s.firstOk}/${s.total}</div><h2>elsőre helyes (${pct}%)</h2><div class="sumrow"><span class="pill ok">${s.ratings.ok} helyes</span><span class="pill part">${s.ratings.part} részben</span><span class="pill bad">${s.ratings.bad} hibás</span></div><div class="row-end" style="justify-content:flex-start"><button class="btn" type="button" id="rHome">Főoldal</button><button class="btn primary" type="button" id="rAgain">Új kör</button></div></div>${list?`<section class="block"><div class="label">Ezekkel volt a legtöbb munka</div><div class="miss">${list}</div></section>`:""}`;
+  view="result";show("result");
+  $("#rHome").onclick=goHome;
+  $("#rAgain").onclick=()=>{setup.ch=s.ch;setup.random=s.random;startCards()};
+}
+$("#cReveal").onclick=reveal;
+$("#cRate").querySelectorAll(".rbtn").forEach(b=>b.onclick=()=>rate(b.dataset.r));
+$("#cExit").onclick=goHome;
+
+/* ---------- keyboard ---------- */
+document.addEventListener("keydown",e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  const onBtn=e.target&&e.target.tagName==="BUTTON";
+  if(view==="quiz"&&S.quiz){
+    if(S.quiz.picked==null&&/^[1-4]$/.test(e.key)){pick(+e.key-1);e.preventDefault()}
+    else if(S.quiz.picked!=null&&e.key==="Enter"&&!onBtn){nextQ();e.preventDefault()}
+  }else if(view==="cards"&&S.cards){
+    if(!S.cards.revealed&&(e.key===" "||(e.key==="Enter"&&!onBtn))){reveal();e.preventDefault()}
+    else if(S.cards.revealed&&/^[1-3]$/.test(e.key)){rate(["bad","part","ok"][+e.key-1]);e.preventDefault()}
+  }
+});
+
+renderHome();
+</script>
+</body>
+</html>
