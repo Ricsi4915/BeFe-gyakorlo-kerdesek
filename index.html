@@ -12,7 +12,7 @@
 :root{
   --bg:#f3f4fa; --surface:#ffffff; --surface-2:#eceef7; --fg:#1a1c2b; --muted:#5b6078; --line:#dcdfec;
   --accent:#5a48e0; --accent-fg:#ffffff;
-  --c0:#5a48e0; --c1:#c98a00; --c2:#d4113a; --c3:#2563d4; --c4:#7d3bf0;
+  --c0:#5a48e0; --c1:#c98a00; --c2:#d4113a; --c3:#2563d4; --c4:#7d3bf0; --c5:#0d8577;
   --k1:#e21b3c; --k2:#1368ce; --k3:#c98a00; --k4:#26890c;
   --ok:#1d8a4a; --part:#c27400; --bad:#d23434;
   --ok-soft:#e3f5ea; --part-soft:#fdf1dc; --bad-soft:#fbe5e5;
@@ -25,7 +25,7 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#11121b; --surface:#1b1d2b; --surface-2:#252839; --fg:#eceef8; --muted:#a0a5bf; --line:#30344a;
   --accent:#8f83ff; --accent-fg:#14121f;
-  --c0:#8f83ff; --c1:#f0b429; --c2:#ff5577; --c3:#5c9bff; --c4:#b18bff;
+  --c0:#8f83ff; --c1:#f0b429; --c2:#ff5577; --c3:#5c9bff; --c4:#b18bff; --c5:#3ccfbd;
   --ok:#3cc47a; --part:#f0a935; --bad:#ff6b6b;
   --ok-soft:#173326; --part-soft:#3a2c12; --bad-soft:#3a1a1d;
   --code-bg:#0c0d14; --code-fg:#e8e9f3; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
@@ -33,7 +33,7 @@
 :root[data-theme="dark"]{
   --bg:#11121b; --surface:#1b1d2b; --surface-2:#252839; --fg:#eceef8; --muted:#a0a5bf; --line:#30344a;
   --accent:#8f83ff; --accent-fg:#14121f;
-  --c0:#8f83ff; --c1:#f0b429; --c2:#ff5577; --c3:#5c9bff; --c4:#b18bff;
+  --c0:#8f83ff; --c1:#f0b429; --c2:#ff5577; --c3:#5c9bff; --c4:#b18bff; --c5:#3ccfbd;
   --ok:#3cc47a; --part:#f0a935; --bad:#ff6b6b;
   --ok-soft:#173326; --part-soft:#3a2c12; --bad-soft:#3a1a1d;
   --code-bg:#0c0d14; --code-fg:#e8e9f3; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
@@ -164,7 +164,7 @@ html{color-scheme:light}body{margin:0}
   <!-- HOME -->
   <main id="home">
     <h1>Frontend vizsgagyakorló</h1>
-    <p class="lede">Borkó Richárd frontend jegyzete alapján: 4 fejezet, feleletválasztós kvíz és kifejtős kártyák.</p>
+    <p class="lede">Borkó Richárd frontend jegyzete alapján: 5 fejezet, feleletválasztós kvíz és kifejtős kártyák.</p>
 
     <div id="resumes" class="block" style="display:grid;gap:10px;margin-top:20px"></div>
 
@@ -255,7 +255,8 @@ const CH = {
   1:{name:"JS működése & TypeScript", short:"1 · JS & TS"},
   2:{name:"Angular alapok", short:"2 · Angular alapok"},
   3:{name:"Szolgáltatások & API", short:"3 · Szolgáltatások"},
-  4:{name:"Haladó Angular eszközök", short:"4 · Haladó eszközök"}
+  4:{name:"Haladó Angular eszközök", short:"4 · Haladó eszközök"},
+  5:{name:"Haladó Angular eszközök II.", short:"5 · Haladó II."}
 };
 
 /* a[0] is always the correct answer; options are shuffled at runtime. k:1 = gyakorlati/kód kérdés */
@@ -423,7 +424,50 @@ const QUIZ = [
 {c:4,k:1,q:"Mit ír ki a konzolra?",code:"const numbers$ = new Observable<number>(s => {\n  s.next(1); s.next(2); s.next(3);\n  s.complete();\n});\nnumbers$.subscribe({\n  next: v => console.log(v),\n  complete: () => console.log('Vége')\n});",a:["1, 2, 3, Vége","Vége, 1, 2, 3","Csak 3","Semmit, mert nincs error ág"],e:"A next ág minden értékre lefut, a végén a complete."},
 {c:4,k:1,q:"Hova kerül a „The Matrix” szöveg?",code:"<!-- card.component.html -->\n<div class=\"card\">\n  <h1><ng-content select=\"[title]\"></ng-content></h1>\n  <p><ng-content select=\"[intro]\"></ng-content></p>\n</div>\n\n<!-- szülő -->\n<app-card>\n  <span title>The Matrix</span>\n  <span intro>Lorem ipsum...</span>\n</app-card>",a:["A kártya `<h1>` elemébe","A kártya `<p>` elemébe","Sehova, mert a span nem projektálható","A szülő komponens h1 elemébe"],e:"A title attribútumú span a select=\"[title]\" slotba kerül."},
 {c:4,k:1,q:"Mi történik a Frissít gomb megnyomásakor?",code:"<!-- sablon -->\n<button (click)=\"update()\">Frissít</button>\n<app-card #card></app-card>\n\n// TS\n@ViewChild('card') cardComp!: CardComponent;\nupdate(): void {\n  this.cardComp.changeMessage();\n}",a:["A szülő meghívja a gyerek CardComponent changeMessage() metódusát","A gyerek meghívja a szülő update() metódusát","Új CardComponent példány jön létre","Hiba, mert #card csak CSS-ben használható"],e:"A ViewChild a #card sablonreferencián keresztül éri el a gyereket."},
-{c:4,k:1,q:"Melyik komponens stateful?",code:"export class AnimalCardComponent {\n  @Input() animal!: Animal;\n}\n\nexport class AnimalsComponent {\n  service = inject(AnimalApiService);\n  animals$ = this.service.getAnimals();\n  caredAnimals: Animal[] = [];\n}",a:["AnimalsComponent","AnimalCardComponent","Mindkettő","Egyik sem"],e:"Az AnimalsComponent saját állapotot kezel (betölt, módosít); az AnimalCard csak megjeleníti, amit kap."}
+{c:4,k:1,q:"Melyik komponens stateful?",code:"export class AnimalCardComponent {\n  @Input() animal!: Animal;\n}\n\nexport class AnimalsComponent {\n  service = inject(AnimalApiService);\n  animals$ = this.service.getAnimals();\n  caredAnimals: Animal[] = [];\n}",a:["AnimalsComponent","AnimalCardComponent","Mindkettő","Egyik sem"],e:"Az AnimalsComponent saját állapotot kezel (betölt, módosít); az AnimalCard csak megjeleníti, amit kap."},
+
+/* ===== 5. Haladó eszközök II. ===== */
+{c:5,q:"Milyen szerkezetet alkotnak egy Angular alkalmazás komponensei?",a:["Fát (hierarchiát): a szülő sablonjában vannak a gyerekei","Egy lapos listát, egymástól függetlenül","Gráfot, ahol bármelyik bármelyiket tartalmazhatja körkörösen","Sort (queue-t), ahogy létrejöttek"],e:"Pl. az App-component.html-ben van az app-user, ami így az AppComponent gyerekeleme."},
+{c:5,q:"Az `app-component.html` sablonban szerepel az `<app-user>`. Milyen viszonyban vannak?",a:["Az app-user az AppComponent gyereke","Az AppComponent az app-user gyereke","Testvérek, egy szinten vannak","Nincs köztük kapcsolat"],e:"A szülő sablonjában vannak a gyerekei."},
+{c:5,q:"Hogyan ad adatot a szülő komponens a gyereknek?",a:["Input segítségével, property bindinggal (pl. `[label]`)","Output segítségével, emit-tel","Event bindinggal (pl. `(click)`)","Csak egy közös service-en keresztül lehetséges"],e:"Szülő → gyerek: INPUT."},
+{c:5,q:"Hogyan jelez a gyerek komponens a szülőnek?",a:["Output segítségével: eseményt küld fel (emit), amit a szülő event bindinggal figyel","Input segítségével, property bindinggal","Közvetlenül átírja a szülő mezőit","A gyerek nem tud jelezni a szülőnek"],e:"Gyerek → szülő: OUTPUT."},
+{c:5,q:"Melyik párosítás helyes?",a:["Input – property binding `[ ]`; Output – event binding `( )`","Input – event binding `( )`; Output – property binding `[ ]`","Mindkettő interpolációval `{{ }}` működik","Mindkettő kétirányú kötéssel `[( )]` működik"],e:""},
+{c:5,q:"Mi az interceptor?",a:["Köztes réteg a frontend és a backend között, amin a HttpClient minden kérése és válasza keresztülmegy","Egy route guard, ami az oldalak megnyitását tiltja","Egy pipe, ami a HTTP választ formázza a sablonban","A backend egyik végpontja"],e:""},
+{c:5,q:"Mi az interceptor fő előnye?",a:["Nem kell minden service-metódusba külön beleírni a kérések és válaszok kezelését, egységesíthető","Gyorsabbá teszi a backendet","Kiváltja a HttpClient-et","Automatikusan titkosítja a teljes forgalmat"],e:""},
+{c:5,q:"Mit kap paraméterként egy interceptor függvény?",a:["`req` (a kimenő kérés) és `next`","`request` és `response`","`component` és `service`","`token` és `user`"],e:""},
+{c:5,q:"Mi a `next` szerepe egy interceptorban?",a:["Továbbadja a kérést a következő interceptornak, az utolsó esetén pedig a backendnek","Lekéri a következő oldalt a routertől","A következő értéket küldi egy BehaviorSubjectbe","Megismétli a kérést hiba esetén"],e:""},
+{c:5,q:"Melyik feladatra alkalmas tipikusan egy interceptor?",a:["Minden kéréshez automatikusan hozzáadni az `Authorization` fejlécet","Egy komponens sablonjának megjelenítésére","Route paraméter kiolvasására","Adat formázására a sablonban"],e:"Egy helyen, egységesen kezelhetők a kérések és válaszok."},
+{c:5,q:"Mi a toast?",a:["Kis felugró értesítés a képernyő sarkában, ami pár másodperc után eltűnik, és nem akasztja meg a munkát","Teljes képernyős, bezárásig blokkoló párbeszédablak","Egy HTTP státuszkód","Egy beépített Angular pipe"],e:"Visszajelzést ad, pl. egy módosítás sikerességéről."},
+{c:5,q:"Hogyan épül fel általában a toast megoldás Angularban?",a:["Egy service tárolja a látható üzeneteket (bárhonnan hozzáadhatók), egy külön komponens jeleníti meg őket","Minden komponens saját toast tömböt tárol és jelenít meg","Egy route guard jeleníti meg az üzeneteket","A backend küldi a kész toast HTML-t"],e:"Pl. egy toast-component jeleníti meg."},
+{c:5,q:"Mi a gyakori párosítás toast és interceptor között?",a:["Az interceptor minden HTTP hibánál toastot jelenít meg, majd továbbadja a hibát, hogy a kérést indító komponens is értesüljön","Az interceptor elnyeli a hibát, így a komponens sosem tud róla","A toast küldi újra a hibás kérést","A toast helyettesíti az interceptort"],e:""},
+{c:5,q:"Miért adja tovább az interceptor a hibát a toast megjelenítése után?",a:["Hogy a kérést indító komponens is értesüljön a hibáról","Hogy a backend újra megkapja","Hogy a toast kétszer jelenjen meg","Hogy a böngésző újratöltse az oldalt"],e:""},
+{c:5,q:"Mik az életciklus metódusok (lifecycle hooks)?",a:["Metódusok, amelyeket az Angular a komponens életében adott pillanatokban hív meg","RxJS operátorok","Route guardok","A build lépései"],e:"Ha megírjuk őket, beállíthatjuk, mi történjen az adott pillanatban."},
+{c:5,q:"Melyik hook fut le a komponens megszűnésekor?",a:["`ngOnDestroy`","`ngOnInit`","`ngOnChanges`","`ngAfterViewInit`"],e:"Megszűnéskor: leiratkozás, takarítás."},
+{c:5,q:"Mikor fut le az `ngOnChanges`?",a:["Amikor egy bekötött input új értéket kap (többször is lefuthat)","Pontosan egyszer, a konstruktor előtt","Csak a komponens megszűnésekor","Csak a ViewChild elkészülte után"],e:""},
+{c:5,q:"Mire való az `ngOnInit`?",a:["Kezdeti betöltésre; ekkor az inputok már megvannak (egyszer fut le)","Minden change detection futáskor lefut","A komponens megszűnésekor fut le","Akkor fut, amikor egy input értéke változik"],e:""},
+{c:5,q:"Mi igaz a konstruktorra a lifecycle szempontjából?",a:["Itt történik a DI (`inject()`), de az inputok még nincsenek meg","Itt már elérhetők az inputok és a ViewChild is","Minden change detectionkor újra lefut","Megszűnéskor hívódik meg"],e:""},
+{c:5,q:"Melyik hooktól érhető el biztosan a nézet és a gyerekkomponensek (@ViewChild)?",a:["`ngAfterViewInit`","`ngOnInit`","`ngOnChanges`","`constructor`"],e:"A nézet és a gyerekek ekkor készülnek el."},
+{c:5,q:"Mikor fut le az `ngAfterContentInit`?",a:["Amikor a kivetített (projektált) tartalom kész (@ContentChild)","Amikor a HTTP válasz megérkezik","Minden change detection után","A komponens megszűnésekor"],e:"Kapcsolódik a Content Projectionhöz."},
+{c:5,q:"Melyik hook fut le minden change detection futáskor?",a:["`ngDoCheck`","`ngOnInit`","`ngAfterViewInit`","`ngOnDestroy`"],e:""},
+{c:5,q:"Melyik hook fut le csak egyszer?",a:["`ngOnInit`","`ngOnChanges`","`ngDoCheck`","`ngAfterViewChecked`"],e:"Egyszer: constructor, ngOnInit, ngAfterContentInit, ngAfterViewInit, ngOnDestroy. Többször: ngOnChanges, ngDoCheck, a *Checked hookok."},
+{c:5,q:"Melyik a helyes sorrend?",a:["constructor → ngOnChanges → ngOnInit → ngAfterViewInit → ngOnDestroy","ngOnInit → constructor → ngOnChanges → ngOnDestroy","constructor → ngOnInit → ngOnChanges → ngAfterViewInit → ngOnDestroy","ngOnChanges → constructor → ngAfterViewInit → ngOnInit"],e:"Teljes sorrend: constructor, ngOnChanges, ngOnInit, ngDoCheck, ngAfterContentInit, ngAfterContentChecked, ngAfterViewInit, ngAfterViewChecked, ngOnDestroy."},
+{c:5,q:"Miért nem elég önmagában a hagyományos HTTP élő eredményjelzéshez vagy chathez?",a:["Mert kérés-válasz alapú: a kliens kérdez és a backend válaszol, a szerver magától nem küld (push)","Mert a HTTP nem tud JSON-t küldeni","Mert a HTTP csak képeket tud továbbítani","Mert a HTTP kérések nem aszinkronok"],e:""},
+{c:5,q:"Mi a polling?",a:["A kliens pár másodpercenként újra lekérdezi, van-e új adat","A szerver nyitva tartja a kérést, amíg adat nem jön","Állandó, kétirányú kapcsolat","Egyirányú, nyitva maradó HTTP kapcsolat"],e:""},
+{c:5,q:"Mi a long polling?",a:["A szerver nyitva tartja a kliens kérését, és csak akkor válaszol, ha van adat","A kliens pár másodpercenként új kérést küld","Állandó, kétirányú kapcsolat","Egy nagyon hosszú URL-lel küldött kérés"],e:""},
+{c:5,q:"Mi jellemzi a Server-Sent Events (SSE) megoldást?",a:["Nyitva maradó HTTP kapcsolat, a szerver folyamatosan küldhet, de csak egy irányba","Állandó, kétirányú kapcsolat","A kliens másodpercenként kérdez","A kliens küld folyamatosan a szervernek"],e:""},
+{c:5,q:"Mi jellemzi a WebSocketet?",a:["Állandó, kétirányú kapcsolat","Csak a szerver küldhet, egy irányba","Minden üzenet új HTTP kérés","A kliens pár másodpercenként kérdez"],e:""},
+{c:5,q:"Melyik megoldás ad kétirányú kapcsolatot?",a:["WebSocket","Server-Sent Events","Polling","Long polling"],e:"Az SSE csak szerver → kliens irányú."},
+{c:5,q:"Mi a SignalR?",a:["A Microsoft könyvtára valós idejű kommunikációhoz: szerveroldalon ASP.NET Core, kliensoldalon JS könyvtár","Egy Angular beépített pipe","Egy Google által fejlesztett JS engine","Egy CSS animációs könyvtár"],e:""},
+{c:5,q:"Mit csinál a SignalR kapcsolódáskor?",a:["Egyeztet a szerverrel, és automatikusan kiválasztja a legjobb, mindkét oldalon működő lehetőséget","Mindig pollingot használ","Mindig long pollingot használ","A fejlesztőnek kézzel kell megadnia a szállítási módot, különben nem működik"],e:""},
+{c:5,q:"Angularban jellemzően mi építi fel és kezeli a SignalR kapcsolatot?",a:["Egy service","Minden komponens külön-külön","Egy pipe","Az index.html"],e:"A service a beérkező eseményeket egy BehaviorSubject segítségével teszi elérhetővé."},
+{c:5,q:"Miért jó BehaviorSubjectet használni a SignalR service-ben?",a:["Tárolja az aktuális értéket, így a később létrejövő komponensek is megkapják külön SignalR-kapcsolat nélkül","Mert BehaviorSubject nélkül a SignalR nem tud csatlakozni","Mert a BehaviorSubject kétirányú WebSocketet nyit","Mert így a backend nem küld több adatot"],e:"A .next()-tel frissített értéket az összes feliratkozó megkapja."},
+/* ch5 code */
+{c:5,k:1,q:"Melyik rész az Input és melyik az Output?",code:"<!-- app.component.html -->\n<app-user [label]=\"'Admin'\"\n          (deleted)=\"onDeleted($event)\">\n</app-user>",a:["`[label]` Input (szülő → gyerek), `(deleted)` Output (gyerek → szülő)","`[label]` Output, `(deleted)` Input","Mindkettő Input","Mindkettő Output"],e:"Property binding [ ] → Input, event binding ( ) → Output."},
+{c:5,k:1,q:"Mi történik, amikor a gyerekben lefut a `remove()`?",code:"// user.component.ts (gyerek)\n@Output() deleted = new EventEmitter<number>();\n\nremove(): void {\n  this.deleted.emit(this.id);\n}\n\n<!-- szülő sablon -->\n<app-user (deleted)=\"onDeleted($event)\"></app-user>",a:["A szülő onDeleted metódusa lefut, és $event a gyerek id-ja lesz","A gyerek törli magát a szülő tömbjéből","A szülő minden gyereke törlődik","Semmi, mert az emit csak a gyereken belül látszik"],e:"A gyerek eseményt küld fel, a szülő event bindinggal figyeli."},
+{c:5,k:1,q:"A komponens megjelenik, majd egy `*ngIf` eltávolítja. Mi jelenik meg a konzolon?",code:"export class ExampleComponent implements OnInit, OnDestroy {\n  ngOnInit(): void {\n    console.log('A komponens elindult.');\n  }\n  ngOnDestroy(): void {\n    console.log('A komponens megszűnik.');\n  }\n}",a:["Elindult., majd Megszűnik.","Csak Elindult.","Megszűnik., majd Elindult.","Semmi, mert az *ngIf nem szünteti meg a komponenst"],e:"Az ngOnInit a kezdeti betöltéskor, az ngOnDestroy a megszűnéskor fut le."},
+{c:5,k:1,q:"Melyik hookba írnád ezt, hogy minden új `userId` értéknél újratöltsön?",code:"@Input() userId!: number;\n\n// ____(): void {\n//   this.loadUser(this.userId);\n// }",a:["`ngOnChanges`","`ngOnDestroy`","`constructor`","`ngAfterViewInit`"],e:"Az ngOnChanges akkor fut, amikor egy bekötött input új értéket kap."},
+{c:5,k:1,q:"Mit csinál ez az interceptor?",code:"export const authInterceptor: HttpInterceptorFn = (req, next) => {\n  const token = localStorage.getItem('token');\n  const authReq = req.clone({\n    setHeaders: { Authorization: 'Bearer ' + token }\n  });\n  return next(authReq);\n};",a:["Minden kimenő kéréshez hozzáadja a tokent a fejlécben, majd továbbadja","Bejelentkezteti a felhasználót","Törli a tokent minden kérés után","Megakadályozza a kérések elküldését"],e:"Így nem kell minden service-metódusba külön beleírni."},
+{c:5,k:1,q:"Mi történik egy sikertelen HTTP kérésnél?",code:"export const errorInterceptor: HttpInterceptorFn = (req, next) => {\n  const toast = inject(ToastService);\n  return next(req).pipe(\n    catchError(err => {\n      toast.show('Hiba történt!');\n      return throwError(() => err);\n    })\n  );\n};",a:["Megjelenik egy toast, és a hiba továbbmegy a kérést indító komponenshez is","Megjelenik egy toast, a hiba elnyelődik","A kérés automatikusan újraküldődik","Semmi, mert interceptorban nem lehet service-t használni"],e:"A throwError továbbadja a hibát."}
 ];
 
 const CARDS = [
@@ -466,7 +510,15 @@ const CARDS = [
 {c:4,s:"4.6",q:"Mi az Observable és az Observer?",p:["Observable: maga az adatfolyam; időben nulla, egy vagy több értéket bocsáthat ki, majd befejeződhet (complete) vagy hibára futhat (error).","Observer: megmondja, mit csinálunk az érkező adattal (next), a hibával (error) és a befejezéssel (complete)."],code:"numbers$.subscribe({\n  next: value => console.log(value),\n  error: err => console.error(err),\n  complete: () => console.log('Vége')\n});"},
 {c:4,s:"4.7",q:"Mi a Subject és a BehaviorSubject? Mi a tipikus használata?",p:["Subject: olyan Observable, amibe mi magunk is küldhetünk értéket: `.next(érték)`.","BehaviorSubject: speciális Subject; a kezdőérték kötelező, az új feliratkozó azonnal a legutóbbi értéket kapja, az aktuális érték bármikor lekérhető (`.value`).","Tipikus használat: megosztott állapot egy service-ben (pl. kosár elemszáma), amire több komponens feliratkozik."]},
 {c:4,s:"4.8",q:"Mire jó a @ViewChild?",p:["A komponens hozzáfér a saját sablonjában lévő elemhez, direktívához vagy gyerekkomponenshez, pl. meghívhatja a gyerek egy metódusát.","A sablonban sablon referencia változóval jelöljük, pl. `#card`."],code:"<app-card #card></app-card>\n\n@ViewChild('card') cardComp!: CardComponent;\nupdate() { this.cardComp.changeMessage(); }"},
-{c:4,s:"4.9",q:"Mi a Content Projection?",p:["Egy komponens belsejébe a használó (szülő) komponens által megadott HTML-tartalmat illesztünk be.","A gyerek sablonjában `<ng-content>` jelöli, hova kerüljön a tartalom; több slot is lehet a select attribútummal.","ngFor-ral kombinálva több kártya is létrehozható különböző tartalommal."],code:"<!-- gyerek -->\n<h1><ng-content select=\"[title]\"></ng-content></h1>\n\n<!-- szülő -->\n<app-card><span title>The Matrix</span></app-card>"}
+{c:4,s:"4.9",q:"Mi a Content Projection?",p:["Egy komponens belsejébe a használó (szülő) komponens által megadott HTML-tartalmat illesztünk be.","A gyerek sablonjában `<ng-content>` jelöli, hova kerüljön a tartalom; több slot is lehet a select attribútummal.","ngFor-ral kombinálva több kártya is létrehozható különböző tartalommal."],code:"<!-- gyerek -->\n<h1><ng-content select=\"[title]\"></ng-content></h1>\n\n<!-- szülő -->\n<app-card><span title>The Matrix</span></app-card>"},
+
+{c:5,s:"5.1",q:"Hogyan kommunikálnak egymással a szülő és a gyerek komponensek (Component I/O)?",p:["A komponensek fát alkotnak (hierarchia): a szülő sablonjában vannak a gyerekei, pl. az App-component.html-ben az app-user.","Szülő → gyerek: INPUT. A szülő property bindinggal ad adatot (pl. `[label]`).","Gyerek → szülő: OUTPUT. A gyerek eseményt küld fel (emit), a szülő event bindinggal figyeli."],code:"<app-user [label]=\"'Admin'\" (deleted)=\"onDeleted($event)\"></app-user>"},
+{c:5,s:"5.2",q:"Mi az interceptor, mi az előnye, és mit kap paraméterként?",p:["Köztes réteg a frontend és a backend között; a HttpClient minden kérése és válasza keresztülmegy rajta.","Előnye: nem kell minden service-metódusba külön beleírni a kérések és válaszok kezelését, egységesíthető.","Egy függvény, ami két dolgot kap: `req` (a kimenő kérés) és `next` (átadás a következő interceptornak, az utolsó esetén a backendnek)."]},
+{c:5,s:"5.3",q:"Mi a toast, hogyan épül fel, és hogyan kapcsolódik az interceptorhoz?",p:["Kis felugró értesítés a képernyő sarkában, pár másodperc után eltűnik, visszajelzést ad (pl. sikeres módosítás), a munkát nem akasztja meg.","Felépítés: egy service tárolja a látható üzeneteket, amik bárhonnan hozzáadhatók; egy külön komponens (pl. toast-component) jeleníti meg.","Gyakran interceptorral párosítják: minden HTTP hibánál jelez, majd továbbadja a hibát, hogy a kérést indító komponens is értesüljön."]},
+{c:5,s:"5.4",q:"Mik a lifecycle hookok? Mondj példát a használatukra!",p:["Metódusok, amelyeket az Angular a komponens életében adott pillanatokban hív meg.","Ha megírjuk őket, beállíthatjuk, mi történjen az adott pillanatban, pl. egy bekötött input új értékénél (ngOnChanges).","Pl. `ngOnInit`: kezdeti betöltés; `ngOnDestroy`: megszűnéskor leiratkozás, takarítás."],code:"export class ExampleComponent implements OnInit, OnDestroy {\n  ngOnInit(): void { console.log('A komponens elindult.'); }\n  ngOnDestroy(): void { console.log('A komponens megszűnik.'); }\n}"},
+{c:5,s:"5.4",q:"Sorold fel sorrendben az életciklus metódusokat, és mondd meg, mikor futnak!",p:["constructor (1×): DI, `inject()`; az inputok még nincsenek meg.","ngOnChanges (többször): egy bekötött input új értéket kapott.","ngOnInit (1×): kezdeti betöltés, az inputok már megvannak.","ngDoCheck (többször): minden change detection futáskor.","ngAfterContentInit (1×): a kivetített tartalom kész (@ContentChild); ngAfterContentChecked (többször): a tartalom minden ellenőrzése után.","ngAfterViewInit (1×): a nézet és a gyerekek készen (@ViewChild); ngAfterViewChecked (többször): a nézet minden ellenőrzése után.","ngOnDestroy (1×): megszűnéskor; leiratkozás, takarítás."]},
+{c:5,s:"5.5",q:"Hogyan tud a szerver push értesítést küldeni? Sorold fel a lehetőségeket!",p:["A HTTP alapból kérés-válasz alapú: a kliens kérdez, a backend válaszol. Élő eredményjelzésnél vagy chatnél a szervernek kell küldenie (push).","Polling: a kliens pár másodpercenként újra lekérdezi, van-e új.","Long polling: a szerver nyitva tartja a kliens kérését, és csak akkor válaszol, ha van adat.","Server-Sent Events (SSE): nyitva maradó HTTP kapcsolat, a szerver folyamatosan küldhet, de csak egy irányba.","WebSocket: állandó, kétirányú kapcsolat."]},
+{c:5,s:"5.5",q:"Mi a SignalR, és hogyan használjuk Angularban BehaviorSubjecttel?",p:["A Microsoft könyvtára: szerveroldalon ASP.NET Core, kliensoldalon JS könyvtár.","Kapcsolódáskor egyeztet a szerverrel, és automatikusan kiválasztja a legjobb, mindkét oldalon működő lehetőséget.","Angularban általában egy service építi fel és kezeli a kapcsolatot, a beérkező eseményeket BehaviorSubjecttel teszi elérhetővé.","A BehaviorSubject tárolja az aktuális értéket, új feliratkozáskor azonnal átadja; `.next()`-tel frissíthető, és minden feliratkozó megkapja.","Így a később létrejövő komponensek is hozzáférnek az aktuális állapothoz, külön SignalR-kapcsolat nélkül."]}
 ];
 
 QUIZ.forEach((q,i)=>q.id=i);
@@ -486,7 +538,7 @@ const SHAPES=[
 /* ---------- storage ---------- */
 const KEY="fe-gyakorlo-v1", DATA_V=QUIZ.length+"-"+CARDS.length;
 let S={v:DATA_V,theme:null,quiz:null,cards:null};
-try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o&&o.v===DATA_V)S=Object.assign(S,o);else if(o)S.theme=o.theme||null}}catch(e){}
+try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o){S=Object.assign(S,o);S.v=DATA_V}}}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 
 /* ---------- theme ---------- */
@@ -509,7 +561,7 @@ function chName(ch){return ch?CH[ch].short:"Teljes anyag"}
 function renderHome(){
   $("#m-quiz").setAttribute("aria-pressed",setup.mode==="quiz");
   $("#m-cards").setAttribute("aria-pressed",setup.mode==="cards");
-  const chips=[0,1,2,3,4].map(ch=>{
+  const chips=[0,1,2,3,4,5].map(ch=>{
     const n=setup.mode==="quiz"?quizPool(ch,setup.kind).length:cardPool(ch).length;
     const lbl=ch?CH[ch].name:"Teljes anyag";
     return `<button type="button" class="chip" data-ch="${ch}" style="--c:var(--c${ch})" aria-pressed="${setup.ch===ch}"><span class="dot"></span>${ch?ch+". ":""}${esc(lbl)}<span class="n">${n}</span></button>`;
